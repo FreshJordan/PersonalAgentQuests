@@ -1,0 +1,15 @@
+{
+  "https://www-staging.factor75.com/checkout": [
+    "input[name='firstName']",
+    "text=Street *",
+    "text=State *",
+    "text=Phone Number *",
+    "input[name='credit-card-number']",
+    "button:has-text('Place order & select meals')",
+    "input[name='city']",
+    "#downshift-0-toggle-button",
+    "input#expiration",
+    "input[name='address1']",
+    "input[name='phone']"
+  ]
+}

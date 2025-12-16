@@ -1,0 +1,28 @@
+{
+  "name": "personal-agent-quests",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "goodMorning": "next dev -p 3001",
+    "dev": "next dev -p 3001",
+    "build": "next build",
+    "start": "next start -p 3001",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@aws-sdk/client-bedrock-runtime": "^3.948.0",
+    "@aws-sdk/credential-providers": "^3.948.0",
+    "next": "14.2.30",
+    "playwright": "^1.40.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/react": "18.2.74",
+    "@types/react-dom": "^18.2.4",
+    "eslint": "^8.45.0",
+    "eslint-config-next": "^12.3.0",
+    "typescript": "5.7.3"
+  }
+}
