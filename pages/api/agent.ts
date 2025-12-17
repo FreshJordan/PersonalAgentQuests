@@ -41,6 +41,11 @@ export default async function handler(
       sendEvent('url_update', { url: event.url });
     } else if (event.type === 'ticket_list') {
       sendEvent('ticket_list', { tickets: event.tickets });
+    } else if (event.type === 'token_usage') {
+      sendEvent('token_usage', {
+        input: event.input,
+        output: event.output,
+      });
     } else if (event.type === 'result') {
       sendEvent('result', { text: event.text });
     } else if (event.type === 'error') {

@@ -122,10 +122,22 @@ export class JiraQuestRunner {
             You are a helpful assistant. Please summarize the following Jira ticket comments into a concise summary of the conversation, highlighting key decisions, blockers, or clarifications.
             Format the output as a bulleted list.
           `;
-          commentsText = await this.bedrockService.summarizeText(
+          const summaryResult = await this.bedrockService.summarizeText(
             rawComments,
             prompt
           );
+          commentsText = summaryResult.text;
+
+          if (summaryResult.usage) {
+            this.log(
+              `Summarization Token Usage - Input: ${summaryResult.usage.input_tokens}, Output: ${summaryResult.usage.output_tokens}`
+            );
+            this.eventCallback({
+              type: 'token_usage',
+              input: summaryResult.usage.input_tokens,
+              output: summaryResult.usage.output_tokens,
+            });
+          }
         }
 
         finalReport += `## [${ticket.key}] ${ticket.fields.summary}\n\n`;

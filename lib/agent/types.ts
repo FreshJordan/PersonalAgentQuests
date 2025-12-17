@@ -106,5 +106,6 @@ export type AgentEvent =
       type: 'ticket_list';
       tickets: { key: string; summary: string; description?: string | null }[];
     } // NEW: ticket selection
+  | { type: 'token_usage'; input: number; output: number } // NEW: token usage
   | { type: 'error'; message: string }
   | { type: 'done' };

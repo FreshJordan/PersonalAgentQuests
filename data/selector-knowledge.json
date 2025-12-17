@@ -13,7 +13,8 @@
     "input[name='phone']",
     "input#credit-card-number",
     "input#cvv",
-    "input[name='lastName']"
+    "input[name='lastName']",
+    "button:has-text('Next')"
   ],
   "https://www-staging.factor75.com/plans": [
     "text=Save time in the kitchen",
@@ -33,6 +34,7 @@
     "#expiration",
     "#cvv",
     "input:focus",
-    "div:has-text('State *')"
+    "div:has-text('State *')",
+    "button[aria-expanded=\"false\"]"
   ]
 }

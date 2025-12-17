@@ -51,6 +51,8 @@ export const ActiveQuest: React.FC<ActiveQuestProps> = ({
   const [startTime] = useState<number>(Date.now());
   const [elapsedTime, setElapsedTime] = useState<string>('00:00');
   const [autoScroll, setAutoScroll] = useState(true);
+  const [inputTokens, setInputTokens] = useState(0);
+  const [outputTokens, setOutputTokens] = useState(0);
 
   // Timer effect
   useEffect(() => {
@@ -119,6 +121,9 @@ export const ActiveQuest: React.FC<ActiveQuestProps> = ({
               } else if (data.type === 'ticket_list') {
                 setTicketList(data.tickets);
                 setLoading(false);
+              } else if (data.type === 'token_usage') {
+                setInputTokens((prev) => prev + (data.input || 0));
+                setOutputTokens((prev) => prev + (data.output || 0));
               }
             } catch (e) {
               console.error(e);
@@ -243,6 +248,9 @@ export const ActiveQuest: React.FC<ActiveQuestProps> = ({
                   } else if (data.type === 'ticket_list') {
                     setTicketList(data.tickets);
                     setLoading(false);
+                  } else if (data.type === 'token_usage') {
+                    setInputTokens((prev) => prev + (data.input || 0));
+                    setOutputTokens((prev) => prev + (data.output || 0));
                   } else if (data.type === 'result') {
                     setResponse(data.text);
                   } else if (data.type === 'error') {
@@ -306,6 +314,8 @@ export const ActiveQuest: React.FC<ActiveQuestProps> = ({
         sessionId={sessionId}
         status={status}
         elapsedTime={elapsedTime}
+        inputTokens={inputTokens}
+        outputTokens={outputTokens}
         isCollapsed={isCollapsed}
         takeoverStep={takeoverStep}
         onToggleCollapse={() => setIsCollapsed(!isCollapsed)}

@@ -24,7 +24,7 @@ export class BedrockService {
     modelId?: string,
     maxTokens = 2000,
     tools?: any[]
-  ): Promise<any> {
+  ): Promise<{ content: any; usage: any }> {
     const payload: any = {
       anthropic_version: 'bedrock-2023-05-31',
       max_tokens: maxTokens,
@@ -49,10 +49,16 @@ export class BedrockService {
       throw new Error(JSON.stringify(responseBody.error));
     }
 
-    return responseBody.content;
+    return {
+      content: responseBody.content,
+      usage: responseBody.usage,
+    };
   }
 
-  public async summarizeText(text: string, prompt: string): Promise<string> {
+  public async summarizeText(
+    text: string,
+    prompt: string
+  ): Promise<{ text: string; usage: any }> {
     const messages = [
       {
         role: 'user',
@@ -61,11 +67,15 @@ export class BedrockService {
     ];
 
     try {
-      const content = await this.invokeModel(messages, undefined, 1000);
-      return content[0].text;
+      const { content, usage } = await this.invokeModel(
+        messages,
+        undefined,
+        1000
+      );
+      return { text: content[0].text, usage };
     } catch (e) {
       console.error('Summarization failed:', e);
-      return text; // Fallback
+      return { text: text, usage: null }; // Fallback
     }
   }
 }

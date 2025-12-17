@@ -1,8 +1,8 @@
 import { BROWSER_TOOLS, AgentEvent } from '../agent/types';
 import { ScriptManager } from './ScriptManager';
-import { QuestStep } from './types';
+import { QuestStep, QuestLog } from './types';
 import { KnowledgeBase } from './KnowledgeBase';
-import { QuestLogManager, QuestLog } from './QuestLogManager';
+import { QuestLogManager } from './QuestLogManager';
 import { QUESTS } from './definitions';
 import { BedrockService } from '../services/bedrock';
 import { BrowserService } from '../services/browser';
@@ -446,11 +446,20 @@ export class HybridQuestRunner {
     ];
 
     try {
-      const responseContent = await this.bedrockService.invokeModel(
-        messages,
-        this.modelId,
-        2000
-      );
+      const { content: responseContent, usage } =
+        await this.bedrockService.invokeModel(messages, this.modelId, 2000);
+
+      if (usage) {
+        this.log(
+          `QA Review Token Usage - Input: ${usage.input_tokens}, Output: ${usage.output_tokens}`
+        );
+        this.eventCallback({
+          type: 'token_usage',
+          input: usage.input_tokens,
+          output: usage.output_tokens,
+        });
+      }
+
       const text = responseContent[0].text;
 
       const jsonMatch = text.match(/\{[\s\S]*\}/);
@@ -520,6 +529,25 @@ export class HybridQuestRunner {
     const remainingSteps = this.maxSteps - this.recordedSteps.length;
 
     for (let i = 0; i < remainingSteps; i++) {
+      // Optimization: Prune screenshots from historical messages to save tokens
+      // We keep only the images in the very last message (the current state)
+      for (let j = 0; j < messages.length - 1; j++) {
+        const msg = messages[j];
+        if (Array.isArray(msg.content)) {
+          msg.content.forEach((c: any) => {
+            if (c.type === 'tool_result' && Array.isArray(c.content)) {
+              c.content.forEach((toolContent: any) => {
+                if (toolContent.type === 'image') {
+                  delete toolContent.source;
+                  toolContent.type = 'text';
+                  toolContent.text = '(Screenshot removed to save context)';
+                }
+              });
+            }
+          });
+        }
+      }
+
       const currentUrl = this.browserService.page.url();
       const hints = this.getSelectorHints(currentUrl);
 
@@ -532,12 +560,24 @@ export class HybridQuestRunner {
 
       this.log(`AI Step ${i + 1}: Thinking...`);
 
-      const responseContent = await this.bedrockService.invokeModel(
-        messages,
-        this.modelId,
-        3000,
-        BROWSER_TOOLS
-      );
+      const { content: responseContent, usage } =
+        await this.bedrockService.invokeModel(
+          messages,
+          this.modelId,
+          3000,
+          BROWSER_TOOLS
+        );
+
+      if (usage) {
+        this.log(
+          `AI Token Usage - Input: ${usage.input_tokens}, Output: ${usage.output_tokens}`
+        );
+        this.eventCallback({
+          type: 'token_usage',
+          input: usage.input_tokens,
+          output: usage.output_tokens,
+        });
+      }
 
       messages.push({ role: 'assistant', content: responseContent });
 

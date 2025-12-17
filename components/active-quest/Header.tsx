@@ -16,6 +16,8 @@ interface HeaderProps {
   sessionId: string;
   status: QuestStatus;
   elapsedTime: string;
+  inputTokens: number;
+  outputTokens: number;
   isCollapsed: boolean;
   takeoverStep: number | null;
   onToggleCollapse: () => void;
@@ -27,6 +29,8 @@ export const Header: React.FC<HeaderProps> = ({
   sessionId,
   status,
   elapsedTime,
+  inputTokens,
+  outputTokens,
   isCollapsed,
   takeoverStep,
   onToggleCollapse,
@@ -152,6 +156,26 @@ export const Header: React.FC<HeaderProps> = ({
           <span>⏱</span>
           <span>{elapsedTime}</span>
         </div>
+
+        {(inputTokens > 0 || outputTokens > 0) && (
+          <div
+            style={{
+              fontSize: '12px',
+              color: '#57606a',
+              fontFamily:
+                'ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              marginLeft: '8px',
+              borderLeft: '1px solid #d0d7de',
+              paddingLeft: '12px',
+            }}
+          >
+            <span title="Input Tokens">⬇️ {inputTokens.toLocaleString()}</span>
+            <span title="Output Tokens">⬆️ {outputTokens.toLocaleString()}</span>
+          </div>
+        )}
       </div>
 
       <button

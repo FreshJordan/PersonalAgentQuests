@@ -7,7 +7,7 @@ export class BrowserService {
   public async launch(headless = true): Promise<Page> {
     this.browser = await chromium.launch({ headless });
     this.page = await this.browser.newPage();
-    await this.page.setViewportSize({ width: 1280, height: 800 });
+    await this.page.setViewportSize({ width: 1024, height: 768 });
     return this.page;
   }
 

@@ -89,15 +89,11 @@ export const LiveLogs: React.FC<LiveLogsProps> = ({
             <span style={{ color: '#8b949e', marginRight: '8px' }}>&gt;</span>
             {log.startsWith('[UI]') ? (
               <span style={{ color: '#7ee787' }}>{log}</span>
+            ) : log.startsWith('[Runner]') ? (
+              <span style={{ color: '#d2a8ff' }}>{log}</span>
             ) : (
               log
             )}
-            {log.startsWith('[Runner]') ? (
-              <span style={{ color: '#d2a8ff' }}>{log}</span>
-            ) : null}
-            {!log.startsWith('[UI]') && !log.startsWith('[Runner]')
-              ? log
-              : null}
           </div>
         ))}
         <div ref={logsEndRef} />
