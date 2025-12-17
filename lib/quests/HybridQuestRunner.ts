@@ -1,171 +1,60 @@
-import {
-  BedrockRuntimeClient,
-  InvokeModelCommand,
-} from '@aws-sdk/client-bedrock-runtime';
-import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
-import { chromium, Browser, Page } from 'playwright';
-import { BROWSER_TOOLS, Message, AgentEvent } from '../agent/types';
+import { BROWSER_TOOLS, AgentEvent } from '../agent/types';
 import { ScriptManager } from './ScriptManager';
-import { QuestScript, QuestStep, StepValidation } from './types';
+import { QuestStep } from './types';
 import { KnowledgeBase } from './KnowledgeBase';
 import { QuestLogManager, QuestLog } from './QuestLogManager';
 import { QUESTS } from './definitions';
-
-type QuestContext = Record<string, string>;
+import { BedrockService } from '../services/bedrock';
+import { BrowserService } from '../services/browser';
+import { ValidationService } from '../services/validation';
+import { ContextService } from '../services/context';
 
 export class HybridQuestRunner {
-  private client: BedrockRuntimeClient;
-  private modelId: string;
-  private browser: Browser | null = null;
-  private page: Page | null = null;
+  private bedrockService: BedrockService;
+  private browserService: BrowserService;
+  private validationService: ValidationService | null = null; // init after page launch
+  private contextService: ContextService;
   private eventCallback: (event: AgentEvent) => void;
   private maxSteps: number;
   private recordedSteps: QuestStep[] = [];
-  private currentContext: QuestContext = {};
-
-  private startTime: number = 0;
+  private startTime = 0;
+  private modelId: string;
 
   constructor(eventCallback: (event: AgentEvent) => void, maxSteps = 30) {
     this.eventCallback = eventCallback;
     this.maxSteps = maxSteps;
     this.startTime = Date.now();
-
-    const region = process.env.AWS_REGION || 'eu-west-1';
-    const profile = process.env.AWS_PROFILE || 'sso-bedrock';
-
-    this.client = new BedrockRuntimeClient({
-      region: region,
-      credentials: fromNodeProviderChain({ profile }),
-    });
-
-    this.modelId = 'eu.anthropic.claude-sonnet-4-20250514-v1:0';
-  }
-
-  private generateContext(): QuestContext {
-    const date = new Date();
-    const shortMonth = date
-      .toLocaleString('default', { month: 'short' })
-      .toLowerCase();
-    const day = date.getDate();
-    const shortDate = `${shortMonth}${day}`;
-    // Change: 6 random numbers (100000 to 999999) to decrease collision
-    const randomNum = Math.floor(Math.random() * 900000) + 100000;
-    const dynamicEmail = `jordan.mcinnis+${shortDate}${randomNum}@hellofresh.ca`;
-
-    return {
-      dynamicEmail,
-      // Add other dynamic values here in the future
-      // e.g., dynamicName: 'John Doe',
-    };
+    this.bedrockService = new BedrockService();
+    this.browserService = new BrowserService();
+    this.contextService = new ContextService();
+    this.modelId = 'eu.anthropic.claude-sonnet-4-20250514-v1:0'; // Legacy model ID from original file
   }
 
   private log(message: string) {
     this.eventCallback({ type: 'log', message: `[Runner] ${message}` });
   }
 
-  private async captureScreenshot() {
-    if (!this.page) return;
+  private async captureScreenshot(): Promise<string | null> {
     try {
-      const buffer = await this.page.screenshot({
-        type: 'jpeg',
-        quality: 60,
-      });
-      this.eventCallback({
-        type: 'screenshot',
-        image: buffer.toString('base64'),
-      });
-      return buffer.toString('base64');
+      const base64 = await this.browserService.captureScreenshot();
+      if (base64) {
+        this.eventCallback({
+          type: 'screenshot',
+          image: base64,
+        });
+      }
+      return base64;
     } catch (e) {
       this.log('Failed to capture screenshot');
       return null;
     }
   }
 
-  // Helper to substitute placeholders like {{key}} with values from context
-  private applyContextSubstitutions(params: any): any {
-    if (!this.currentContext) return params;
-    const newParams = { ...params };
-
-    for (const [key, value] of Object.entries(this.currentContext)) {
-      const placeholder = `{{${key}}}`;
-      // Iterate over string properties in params to find and replace
-      for (const paramKey in newParams) {
-        if (
-          typeof newParams[paramKey] === 'string' &&
-          newParams[paramKey].includes(placeholder)
-        ) {
-          newParams[paramKey] = newParams[paramKey].replace(placeholder, value);
-          this.log(`Substituted ${key}: ${value}`);
-        }
-      }
-    }
-    return newParams;
-  }
-
-  // Helper to reverse substitute values with placeholders like {{key}} for recording
-  private applyReverseContextSubstitutions(params: any): any {
-    if (!this.currentContext) return params;
-    const newParams = { ...params };
-
-    for (const [key, value] of Object.entries(this.currentContext)) {
-      const placeholder = `{{${key}}}`;
-      // Iterate over string properties in params to find and replace
-      for (const paramKey in newParams) {
-        if (
-          typeof newParams[paramKey] === 'string' &&
-          newParams[paramKey].includes(value)
-        ) {
-          newParams[paramKey] = newParams[paramKey].replace(value, placeholder);
-          this.log(`Recorded step with dynamic ${key} placeholder`);
-        }
-      }
-    }
-    return newParams;
-  }
-
-  // Helper validation function
-  private async validateCondition(
-    validation: StepValidation
-  ): Promise<boolean> {
-    if (!this.page) return false;
-    const timeout = validation.timeout || 5000;
-
-    try {
-      if (validation.type === 'url_contains') {
-        await this.page.waitForURL(
-          (url) => url.toString().includes(validation.value),
-          {
-            timeout,
-          }
-        );
-      } else if (validation.type === 'element_visible') {
-        await this.page.waitForSelector(validation.value, {
-          state: 'visible',
-          timeout,
-        });
-      } else if (validation.type === 'element_hidden') {
-        await this.page.waitForSelector(validation.value, {
-          state: 'hidden',
-          timeout,
-        });
-      } else if (validation.type === 'text_present') {
-        // Playwright text locator
-        await this.page.waitForSelector(`text=${validation.value}`, {
-          timeout,
-        });
-      }
-      this.log(`Validation passed: ${validation.type} "${validation.value}"`);
-      return true;
-    } catch (e) {
-      this.log(`Validation failed: ${validation.type} "${validation.value}"`);
-      return false;
-    }
-  }
-
-  // 1. Add this method to helper get hints
   private getSelectorHints(url: string): string {
     const selectors = KnowledgeBase.getProvenSelectors(url);
-    if (selectors.length === 0) return '';
+    if (selectors.length === 0) {
+      return '';
+    }
 
     return `
     HISTORICAL KNOWLEDGE:
@@ -176,75 +65,81 @@ export class HybridQuestRunner {
   }
 
   private async executeStep(step: QuestStep, retry = true): Promise<boolean> {
-    if (!this.page) return false;
+    if (!this.browserService.page) {
+      return false;
+    }
 
-    // Apply substitution to params dynamically based on context keys
-    const finalParams = this.applyContextSubstitutions(step.params);
+    const finalParams = this.contextService.applySubstitutions(step.params);
 
     this.log(
       `Executing cached step: ${step.type} ${JSON.stringify(finalParams)}`
     );
 
     try {
+      const page = this.browserService.page;
+
       if (step.type === 'navigate') {
-        await this.page.goto(finalParams.url, {
+        await page.goto(finalParams.url, {
           waitUntil: 'domcontentloaded',
           timeout: 30000,
         });
       } else if (step.type === 'type_text') {
         if (finalParams.iframe_selector) {
-          const frame = this.page.frameLocator(finalParams.iframe_selector);
+          const frame = page.frameLocator(finalParams.iframe_selector);
           const locator = frame.locator(finalParams.selector);
           await locator.waitFor({ state: 'visible', timeout: 5000 });
           await locator.fill(finalParams.text);
         } else {
-          await this.page.waitForSelector(finalParams.selector, {
+          await page.waitForSelector(finalParams.selector, {
             state: 'visible',
             timeout: 5000,
           });
-          await this.page.fill(finalParams.selector, finalParams.text);
+          await page.fill(finalParams.selector, finalParams.text);
         }
       } else if (step.type === 'click') {
         if (finalParams.iframe_selector) {
-          const frame = this.page.frameLocator(finalParams.iframe_selector);
+          const frame = page.frameLocator(finalParams.iframe_selector);
           const locator = frame.locator(finalParams.selector);
           await locator.waitFor({ state: 'visible', timeout: 5000 });
           await locator.click();
         } else {
-          await this.page.waitForSelector(finalParams.selector, {
+          await page.waitForSelector(finalParams.selector, {
             state: 'visible',
             timeout: 5000,
           });
-          await this.page.click(finalParams.selector);
+          await page.click(finalParams.selector);
         }
       } else if (step.type === 'press_key') {
-        await this.page.keyboard.press(finalParams.key);
+        await page.keyboard.press(finalParams.key);
       } else if (step.type === 'wait' || step.type === 'random_wait') {
         const duration = finalParams.duration || 1000;
-        await this.page.waitForTimeout(duration);
+        await page.waitForTimeout(duration);
       }
 
-      await this.page.waitForTimeout(1000); // Small wait after action
-      const newUrl = this.page.url();
+      await page.waitForTimeout(1000);
+      const newUrl = page.url();
       this.eventCallback({ type: 'url_update', url: newUrl });
       await this.captureScreenshot();
 
-      // AFTER successful execution:
-      if (step.validation) {
-        const isValid = await this.validateCondition(step.validation);
+      if (step.validation && this.validationService) {
+        const isValid = await this.validationService.validateCondition(
+          step.validation
+        );
         if (!isValid) {
           throw new Error('Step validation failed');
         }
       }
 
       return true;
-    } catch (e: any) {
+    } catch (e: unknown) {
       if (retry) {
-        this.log(`Step failed: ${e.message}. Waiting 2s and retrying...`);
-        await this.page.waitForTimeout(2000);
+        const msg = e instanceof Error ? e.message : String(e);
+        this.log(`Step failed: ${msg}. Waiting 2s and retrying...`);
+        await this.browserService.page.waitForTimeout(2000);
         return this.executeStep(step, false);
       }
-      this.log(`Step failed after retry: ${e.message}`);
+      const msg = e instanceof Error ? e.message : String(e);
+      this.log(`Step failed after retry: ${msg}`);
       return false;
     }
   }
@@ -258,8 +153,6 @@ export class HybridQuestRunner {
     const aiSteps = this.recordedSteps.filter((s) =>
       s.description?.startsWith('AI Action')
     ).length;
-    // Correctly count script steps: total steps - AI steps
-    // Note: recordedSteps contains ALL steps (script + AI) for the final log
     const scriptSteps = this.recordedSteps.length - aiSteps;
 
     const log: QuestLog = {
@@ -272,8 +165,8 @@ export class HybridQuestRunner {
       stepCount: this.recordedSteps.length,
       aiStepCount: aiSteps,
       scriptStepCount: scriptSteps,
-      context: this.currentContext, // Save context
-      summary: extractedData, // Store extracted data as summary
+      context: this.contextService.getContext(),
+      summary: extractedData,
     };
 
     QuestLogManager.saveLog(log);
@@ -284,9 +177,11 @@ export class HybridQuestRunner {
 
   public async run(questId: string, questDescription: string) {
     try {
-      this.currentContext = this.generateContext();
+      this.contextService.generateDefaults();
       this.log('Context initialized with dynamic variables:');
-      for (const [key, value] of Object.entries(this.currentContext)) {
+      for (const [key, value] of Object.entries(
+        this.contextService.getContext()
+      )) {
         this.log(`  - ${key}: ${value}`);
       }
 
@@ -296,11 +191,9 @@ export class HybridQuestRunner {
         this.log(`Historical Average Steps: ${avgSteps}`);
       }
 
-      this.browser = await chromium.launch({ headless: true });
-      this.page = await this.browser.newPage();
-      await this.page.setViewportSize({ width: 1280, height: 800 });
+      const page = await this.browserService.launch();
+      this.validationService = new ValidationService(page);
 
-      // 1. Try to load existing script
       const existingScript = ScriptManager.getScript(questId);
       let scriptFailedIndex = -1;
 
@@ -316,21 +209,24 @@ export class HybridQuestRunner {
             this.log(`Script failed at step ${i + 1}. Switching to AI mode.`);
             break;
           }
-          // Record successful steps so we keep them
           this.recordedSteps.push(existingScript.steps[i]);
         }
 
-        // If we made it here, all steps executed and validated successfully.
-        // Now check global success criteria.
-        if (scriptFailedIndex === -1 && existingScript.successCriteria) {
+        if (
+          scriptFailedIndex === -1 &&
+          existingScript.successCriteria &&
+          this.validationService
+        ) {
           this.log('Script finished. Verifying final success criteria...');
           for (const criteria of existingScript.successCriteria) {
-            const isValid = await this.validateCondition(criteria);
+            const isValid = await this.validationService.validateCondition(
+              criteria
+            );
             if (!isValid) {
               this.log(
                 'Global success criteria failed. Script was incomplete.'
               );
-              scriptFailedIndex = existingScript.steps.length; // Force AI to pick up at the end
+              scriptFailedIndex = existingScript.steps.length;
               break;
             }
           }
@@ -342,7 +238,6 @@ export class HybridQuestRunner {
 
           if (!review.success) {
             this.log(`Script finished but AI review failed: ${review.reason}`);
-            // Force handover to AI to fix/finish
             scriptFailedIndex = existingScript.steps.length;
           } else {
             this.log('Quest completed successfully using cached script!');
@@ -359,26 +254,10 @@ export class HybridQuestRunner {
         this.log('No existing script found. Starting fresh with AI.');
       }
 
-      // 2. Fallback to AI
-      // If scriptFailedIndex is set, we need to prune the recorded steps
-      // to remove the failed step and any subsequent ones (which haven't run yet).
-      // However, we've only pushed successful steps to this.recordedSteps so far.
-      // But if scriptFailedIndex points to the *end* (global validation failed),
-      // we keep all steps and just ask AI to finish.
-
-      // If script failed in the middle (scriptFailedIndex < recordedSteps.length)
-      // that logic is slightly off because we only push *successful* steps.
-      // If executeStep fails, we DON'T push it.
-      // So this.recordedSteps contains [0...i-1].
-      // scriptFailedIndex is i.
-      // So we are good to go. The recorded steps are only the valid ones up to the crash.
-
       if (scriptFailedIndex !== -1) {
         this.log(
           `Handing over to AI. Context: Script failed at index ${scriptFailedIndex}`
         );
-
-        // Force status update to AI Takeover
         this.eventCallback({
           type: 'log',
           message: 'Switching to AI mode (Force Takeover)',
@@ -412,7 +291,6 @@ export class HybridQuestRunner {
           : undefined
       );
 
-      // 3. Final AI Review
       this.log('Requesting final AI review of mission status...');
       let reviewResult = await this.performAIReview(questId, questDescription);
 
@@ -421,13 +299,12 @@ export class HybridQuestRunner {
           `AI Review Failed: ${reviewResult.reason}. Attempting to fix (one-time retry)...`
         );
 
-        // Give a small step budget boost for the fix attempt if we are close to the limit
         if (this.recordedSteps.length >= this.maxSteps - 5) {
           this.maxSteps += 10;
           this.log(`Extended step budget to ${this.maxSteps} for fix attempt.`);
         }
 
-        const stepHistory = this.recordedSteps
+        const stepHistoryRetry = this.recordedSteps
           .map((s, i) => `${i + 1}. ${s.description} (${s.status})`)
           .join('\n');
 
@@ -437,22 +314,19 @@ export class HybridQuestRunner {
              REASON: ${reviewResult.reason}
 
              HISTORY OF EXECUTED STEPS:
-             ${stepHistory}
+             ${stepHistoryRetry}
 
              YOUR TASK:
              Fix the issue and complete the quest. Verify the state before stopping.
              You are continuing from the current state shown in the screenshot.`
         );
 
-        // Second review
         this.log('Requesting second AI review after fix attempt...');
         reviewResult = await this.performAIReview(questId, questDescription);
       }
 
       if (reviewResult.success) {
-        // Save updated script only if successful
         if (this.recordedSteps.length > 0) {
-          // Ensure every generated script ends with a wait action
           const lastRecordedStep =
             this.recordedSteps[this.recordedSteps.length - 1];
           if (
@@ -472,11 +346,11 @@ export class HybridQuestRunner {
           this.log('Saving updated script for future runs...');
           ScriptManager.saveScript(questId, {
             id: questId,
-            name: questId, // TODO: generate better name
+            name: questId,
             description: questDescription,
             steps: this.recordedSteps,
             lastUpdated: new Date().toISOString(),
-            successCriteria: existingScript?.successCriteria, // Preserve success criteria
+            successCriteria: existingScript?.successCriteria,
           });
         }
 
@@ -488,23 +362,20 @@ export class HybridQuestRunner {
           type: 'log',
           message: `Step failed: AI Review determined mission incomplete: ${reviewResult.reason}`,
         });
-        // We mark as failed in log, but in UI 'Step failed' triggers 'possible_issues'
         this.saveQuestLog(questId, 'failed');
         this.eventCallback({
           type: 'error',
           message: `Mission flagged by AI Review: ${reviewResult.reason}`,
         });
       }
-    } catch (error) {
+    } catch (error: unknown) {
       this.saveQuestLog(questId, 'failed');
-      console.error('Runner Error:', error);
+      this.log(`Runner Error: ${error}`);
       const errorMessage =
         error instanceof Error ? error.message : 'Unknown error';
       this.eventCallback({ type: 'error', message: errorMessage });
     } finally {
-      if (this.browser) {
-        await this.browser.close();
-      }
+      await this.browserService.close();
     }
   }
 
@@ -512,16 +383,18 @@ export class HybridQuestRunner {
     questId: string,
     questDescription: string
   ): Promise<{ success: boolean; reason?: string; extractedData?: any }> {
-    if (!this.page) return { success: false, reason: 'No browser page' };
+    if (!this.browserService.page) {
+      return { success: false, reason: 'No browser page' };
+    }
 
     const screenshotBase64 = await this.captureScreenshot();
-    if (!screenshotBase64)
+    if (!screenshotBase64) {
       return { success: false, reason: 'Failed to capture screenshot' };
+    }
 
     const questDef = QUESTS.find((q) => q.id === questId);
     const expectedOutput = questDef?.expectedOutput || [];
 
-    // Gather context from recorded steps to help the AI extract data
     const stepContext = this.recordedSteps
       .map((s) => {
         if (s.type === 'type_text') return `Typed: "${s.params.text}"`;
@@ -531,7 +404,7 @@ export class HybridQuestRunner {
       .filter(Boolean)
       .join('\n');
 
-    const messages: Message[] = [
+    const messages = [
       {
         role: 'user',
         content: [
@@ -573,24 +446,13 @@ export class HybridQuestRunner {
     ];
 
     try {
-      const payload = {
-        anthropic_version: 'bedrock-2023-05-31',
-        max_tokens: 2000,
-        messages: messages,
-      };
+      const responseContent = await this.bedrockService.invokeModel(
+        messages,
+        this.modelId,
+        2000
+      );
+      const text = responseContent[0].text;
 
-      const command = new InvokeModelCommand({
-        modelId: this.modelId,
-        contentType: 'application/json',
-        accept: 'application/json',
-        body: new TextEncoder().encode(JSON.stringify(payload)),
-      });
-
-      const response = await this.client.send(command);
-      const responseBody = JSON.parse(new TextDecoder().decode(response.body));
-      const text = responseBody.content[0].text;
-
-      // Extract JSON from response
       const jsonMatch = text.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         const result = JSON.parse(jsonMatch[0]);
@@ -601,18 +463,19 @@ export class HybridQuestRunner {
         };
       }
       return { success: false, reason: 'Could not parse AI response' };
-    } catch (e: any) {
-      return { success: false, reason: `AI Error: ${e.message}` };
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      return { success: false, reason: `AI Error: ${msg}` };
     }
   }
 
   private async runAI(questDescription: string, context?: string) {
-    if (!this.page || !this.currentContext) return;
+    if (!this.browserService.page) return;
 
-    // Track failed attempts for the current logical step
     let failedSelectors: string[] = [];
+    const contextData = this.contextService.getContext();
 
-    const messages: Message[] = [
+    const messages: any[] = [
       {
         role: 'user',
         content: [
@@ -624,7 +487,7 @@ export class HybridQuestRunner {
 
             DATA RULES:
             1. If you need to sign up with a NEW email, use this one: ${
-              this.currentContext['dynamicEmail']
+              contextData.dynamicEmail
             }
             2. If you need a credit card, use:
                - Number: 4111 1111 1111 1111
@@ -654,47 +517,28 @@ export class HybridQuestRunner {
       },
     ];
 
-    // Allow AI to run for remaining steps
     const remainingSteps = this.maxSteps - this.recordedSteps.length;
 
     for (let i = 0; i < remainingSteps; i++) {
-      // --- CHANGE START: Inject Hints ---
-      const currentUrl = this.page.url();
+      const currentUrl = this.browserService.page.url();
       const hints = this.getSelectorHints(currentUrl);
 
-      // We push a ephemeral system note with hints if we have them
       if (hints) {
         messages.push({
           role: 'user',
           content: [{ type: 'text', text: `(System Note) ${hints}` }],
         });
       }
-      // --- CHANGE END ---
 
       this.log(`AI Step ${i + 1}: Thinking...`);
 
-      const payload = {
-        anthropic_version: 'bedrock-2023-05-31',
-        max_tokens: 3000,
-        messages: messages,
-        tools: BROWSER_TOOLS,
-      };
+      const responseContent = await this.bedrockService.invokeModel(
+        messages,
+        this.modelId,
+        3000,
+        BROWSER_TOOLS
+      );
 
-      const command = new InvokeModelCommand({
-        modelId: this.modelId,
-        contentType: 'application/json',
-        accept: 'application/json',
-        body: new TextEncoder().encode(JSON.stringify(payload)),
-      });
-
-      const response = await this.client.send(command);
-      const responseBody = JSON.parse(new TextDecoder().decode(response.body));
-
-      if (responseBody.error) {
-        throw new Error(JSON.stringify(responseBody.error));
-      }
-
-      const responseContent = responseBody.content;
       messages.push({ role: 'assistant', content: responseContent });
 
       const toolUses = responseContent.filter(
@@ -714,6 +558,8 @@ export class HybridQuestRunner {
       }
 
       const toolResults = [];
+      const page = this.browserService.page;
+
       for (const toolUse of toolUses) {
         const toolId = toolUse.id || toolUse.tool_use_id;
         const toolName = toolUse.name;
@@ -725,62 +571,58 @@ export class HybridQuestRunner {
 
         try {
           if (toolName === 'navigate') {
-            await this.page.goto(toolInput.url, {
+            await page.goto(toolInput.url, {
               waitUntil: 'domcontentloaded',
               timeout: 30000,
             });
           } else if (toolName === 'type_text') {
             if (toolInput.iframe_selector) {
-              const frame = this.page.frameLocator(toolInput.iframe_selector);
+              const frame = page.frameLocator(toolInput.iframe_selector);
               const locator = frame.locator(toolInput.selector);
               await locator.waitFor({ state: 'visible', timeout: 5000 });
               await locator.fill(toolInput.text);
             } else {
-              await this.page.waitForSelector(toolInput.selector, {
+              await page.waitForSelector(toolInput.selector, {
                 state: 'visible',
                 timeout: 5000,
               });
-              await this.page.fill(toolInput.selector, toolInput.text);
+              await page.fill(toolInput.selector, toolInput.text);
             }
           } else if (toolName === 'click') {
             if (toolInput.iframe_selector) {
-              const frame = this.page.frameLocator(toolInput.iframe_selector);
+              const frame = page.frameLocator(toolInput.iframe_selector);
               const locator = frame.locator(toolInput.selector);
               await locator.waitFor({ state: 'visible', timeout: 5000 });
               await locator.click();
             } else {
-              await this.page.waitForSelector(toolInput.selector, {
+              await page.waitForSelector(toolInput.selector, {
                 state: 'visible',
                 timeout: 5000,
               });
-              await this.page.click(toolInput.selector);
+              await page.click(toolInput.selector);
             }
           } else if (toolName === 'press_key') {
-            await this.page.keyboard.press(toolInput.key);
+            await page.keyboard.press(toolInput.key);
           } else if (toolName === 'random_wait') {
             const waitTime = Math.floor(
               Math.random() *
                 ((toolInput.max || 2000) - (toolInput.min || 500) + 1) +
                 (toolInput.min || 500)
             );
-            await this.page.waitForTimeout(waitTime);
+            await page.waitForTimeout(waitTime);
           }
 
-          await this.page.waitForTimeout(2000);
-          const newUrl = this.page.url();
+          await page.waitForTimeout(2000);
+          const newUrl = page.url();
           this.eventCallback({ type: 'url_update', url: newUrl });
 
-          // Apply reverse substitution for recording
-          // This now dynamically checks all context values against all string params
           const recordedParams =
-            this.applyReverseContextSubstitutions(toolInput);
+            this.contextService.reverseSubstitutions(toolInput);
 
-          // Record this successful AI step
           let stepDescription = `AI Action: ${toolName}`;
           if (toolName === 'click') {
-            // Try to make a human readable description
-            // Resolve placeholders in selector for description if present
-            const selector = this.applyContextSubstitutions(toolInput).selector;
+            const selector =
+              this.contextService.applySubstitutions(toolInput).selector;
             if (selector.includes('text=')) {
               stepDescription = `AI Action: click "${selector.replace(
                 'text=',
@@ -788,17 +630,15 @@ export class HybridQuestRunner {
               )}"`;
             } else if (selector.includes('has-text')) {
               const match = selector.match(/has-text\('(.+?)'\)/);
-              if (match) {
-                stepDescription = `AI Action: click "${match[1]}"`;
-              } else {
-                stepDescription = `AI Action: click element with text`;
-              }
+              stepDescription = match
+                ? `AI Action: click "${match[1]}"`
+                : `AI Action: click element with text`;
             } else {
               stepDescription = `AI Action: click ${selector}`;
             }
           } else if (toolName === 'type_text') {
-            // Resolve placeholders in text for description
-            const resolvedText = this.applyContextSubstitutions(toolInput).text;
+            const resolvedText =
+              this.contextService.applySubstitutions(toolInput).text;
             stepDescription = `AI Action: type "${resolvedText}"`;
           }
 
@@ -810,31 +650,29 @@ export class HybridQuestRunner {
             status: 'success',
           });
 
-          // --- CHANGE START: Learning Logic ---
-          // If we succeeded and we had previous failures in this loop, it means we found a fix.
           if (
             failedSelectors.length > 0 &&
             (toolName === 'click' || toolName === 'type_text')
           ) {
-            const winningSelector = toolInput.selector; // or iframe_selector
+            const winningSelector = toolInput.selector;
             this.log(
               `Learning: Found working selector '${winningSelector}' after failures.`
             );
             KnowledgeBase.learn(currentUrl, winningSelector);
-            failedSelectors = []; // Reset
+            failedSelectors = [];
           }
-          // --- CHANGE END ---
-        } catch (e: any) {
-          const errMsg = e.message || String(e);
-          console.error(`[Agent] Tool error (${toolName}):`, errMsg);
+        } catch (e: unknown) {
+          const errMsg = e instanceof Error ? e.message : String(e);
+          // console.error(`[Agent] Tool error (${toolName}):`, errMsg); // Removed console.error
+          this.log(`[Agent] Tool error (${toolName}): ${errMsg}`); // Log instead
           resultText = `Error: ${errMsg}`;
 
-          // --- CHANGE START: Failure Tracking ---
           if (toolName === 'click' || toolName === 'type_text') {
             const badSelector = toolInput.selector;
-            if (badSelector) failedSelectors.push(badSelector);
+            if (badSelector) {
+              failedSelectors.push(badSelector);
+            }
           }
-          // --- CHANGE END ---
         }
 
         const screenshotBase64 = await this.captureScreenshot();

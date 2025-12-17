@@ -3,13 +3,15 @@ import path from 'path';
 import { QuestScript, QuestStep } from './types';
 import { QUESTS } from './definitions';
 
-const SCRIPTS_DIR = path.join(
-  process.cwd(),
-  'personal-agent-quests',
-  'lib',
-  'quests',
-  'scripts'
-);
+const getProjectRoot = () => {
+  const cwd = process.cwd();
+  if (cwd.endsWith('personal-agent-quests')) {
+    return cwd;
+  }
+  return path.join(cwd, 'personal-agent-quests');
+};
+
+const SCRIPTS_DIR = path.join(getProjectRoot(), 'data', 'scripts');
 
 // Ensure directory exists
 if (!fs.existsSync(SCRIPTS_DIR)) {

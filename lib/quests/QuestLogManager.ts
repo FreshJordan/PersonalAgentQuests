@@ -4,10 +4,12 @@ import { QuestStep, QuestLog } from './types';
 
 export class QuestLogManager {
   private static getLogDir(): string {
-    const dir = path.join(
-      process.cwd(),
-      'personal-agent-quests/lib/quests/logs'
-    );
+    const cwd = process.cwd();
+    const baseDir = cwd.endsWith('personal-agent-quests')
+      ? cwd
+      : path.join(cwd, 'personal-agent-quests');
+
+    const dir = path.join(baseDir, 'data', 'logs');
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
     }

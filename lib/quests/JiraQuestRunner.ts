@@ -1,188 +1,53 @@
-import {
-  BedrockRuntimeClient,
-  InvokeModelCommand,
-} from '@aws-sdk/client-bedrock-runtime';
-import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { AgentEvent } from '../agent/types';
-import { exec, spawn } from 'child_process';
-import util from 'util';
 import path from 'path';
 import fs from 'fs';
-
 import { QuestLogManager } from './QuestLogManager';
 import { QuestLog } from './types';
-
-const execAsync = util.promisify(exec);
-
-interface JiraTicket {
-  key: string;
-  fields: {
-    summary: string;
-    description: string | any | null; // Allow any for ADF
-    status: {
-      name: string;
-    };
-    comment?: {
-      comments: {
-        body: string | any;
-        author: { displayName: string };
-        created: string;
-      }[];
-    };
-  };
-}
+import { JiraService } from '../services/jira';
+import { BedrockService } from '../services/bedrock';
+import { GitService } from '../services/git';
+import { CursorAgentService } from '../services/cursor';
 
 export class JiraQuestRunner {
-  private client: BedrockRuntimeClient;
-  private modelId: string;
+  private jiraService: JiraService;
+  private bedrockService: BedrockService;
+  private gitService: GitService;
+  private cursorService: CursorAgentService;
   private eventCallback: (event: AgentEvent) => void;
 
   constructor(eventCallback: (event: AgentEvent) => void) {
     this.eventCallback = eventCallback;
-    const region = process.env.AWS_REGION || 'eu-west-1';
-    const profile = process.env.AWS_PROFILE || 'sso-bedrock';
-
-    this.client = new BedrockRuntimeClient({
-      region: region,
-      credentials: fromNodeProviderChain({ profile }),
-    });
-
-    this.modelId = 'eu.anthropic.claude-sonnet-4-5-20250929-v1:0';
+    this.jiraService = new JiraService();
+    this.bedrockService = new BedrockService();
+    this.gitService = new GitService();
+    this.cursorService = new CursorAgentService();
   }
 
   private log(message: string) {
     this.eventCallback({ type: 'log', message: `[JiraRunner] ${message}` });
   }
 
-  private async summarizeComments(comments: string): Promise<string> {
-    const prompt = `
-You are a helpful assistant. Please summarize the following Jira ticket comments into a concise summary of the conversation, highlighting key decisions, blockers, or clarifications.
-Format the output as a bulleted list.
-
-COMMENTS:
-${comments}
-`;
-
-    try {
-      const command = new InvokeModelCommand({
-        modelId: this.modelId,
-        body: JSON.stringify({
-          anthropic_version: 'bedrock-2023-05-31',
-          max_tokens: 1000,
-          messages: [{ role: 'user', content: prompt }],
-        }),
-        contentType: 'application/json',
-        accept: 'application/json',
-      });
-
-      const response = await this.client.send(command);
-      const responseBody = JSON.parse(new TextDecoder().decode(response.body));
-      return responseBody.content[0].text;
-    } catch (e) {
-      this.log(`Failed to summarize comments: ${e}`);
-      return comments; // Fallback to raw comments
-    }
-  }
-
-  private getProjectRoot(): string {
-    return path.resolve(process.cwd(), '..');
-  }
-
-  public async fetchJiraTickets(filterPrefix?: string): Promise<JiraTicket[]> {
-    const host = process.env.JIRA_HOST;
-    const email = process.env.JIRA_EMAIL;
-    const token = process.env.JIRA_API_TOKEN;
-
-    if (!host || !email || !token) {
-      throw new Error('Missing Jira credentials in .env');
-    }
-
-    if (host.includes('your-domain')) {
-      throw new Error(
-        'Please update JIRA_HOST in .env with your actual Jira URL (e.g., https://mycompany.atlassian.net)'
-      );
-    }
-
-    this.log(`Fetching tickets from ${host}...`);
-
-    // JQL: assignee = currentUser() AND status not in (Closed, Done)
-    let jql = 'assignee = currentUser() AND status not in (Closed, Done)';
-
-    if (filterPrefix && filterPrefix.trim()) {
-      const cleanPrefix = filterPrefix
-        .trim()
-        .toUpperCase()
-        .replace(/'/g, "\\'");
-
-      // If the user inputs a project key (e.g. "SHA"), filter by project.
-      // If they input a full ID (e.g. "SHA-123"), filter by that specific ID.
-
-      if (/^[A-Z]+$/.test(cleanPrefix)) {
-        jql += ` AND project = "${cleanPrefix}"`;
-        this.log(`Applying filter: Project = "${cleanPrefix}"`);
-      } else if (cleanPrefix.includes('-')) {
-        jql += ` AND key = "${cleanPrefix}"`;
-        this.log(`Applying filter: Ticket Key = "${cleanPrefix}"`);
-      } else {
-        // Fallback or partial? JQL doesn't support "key starts with" well.
-        // Let's assume project key if ambiguous.
-        jql += ` AND project = "${cleanPrefix}"`;
-        this.log(`Applying filter: Project = "${cleanPrefix}"`);
-      }
-    }
-
-    // Using the POST /search/jql endpoint which is the recommended replacement
-    const url = `${host}/rest/api/3/search/jql`;
-
-    const auth = Buffer.from(`${email}:${token}`).toString('base64');
-
-    try {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          Authorization: `Basic ${auth}`,
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          jql,
-          fields: ['summary', 'description', 'status'], // comment not needed here
-          maxResults: 20,
-        }),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        this.log(`Jira API Error Response: ${errorText}`);
-        throw new Error(
-          `Jira API Error: ${response.status} ${response.statusText}`
-        );
-      }
-
-      const data = await response.json();
-      this.log(`Found ${data.issues.length} tickets.`);
-      // Log the first ticket to debug description field
-      if (data.issues.length > 0) {
-        const first = data.issues[0];
-        this.log(
-          `Debug First Ticket: Key=${first.key}, Summary=${
-            first.fields.summary
-          }, DescType=${typeof first.fields.description}`
-        );
-        // Jira Cloud often returns ADF (JSON object) for description, not string.
-        // We need to handle that for the preview text.
-      }
-      return data.issues as JiraTicket[];
-    } catch (e: any) {
-      throw new Error(`Failed to fetch tickets: ${e.message}`);
-    }
-  }
-
-  // AI Methods removed as requested
-
   public async run(filterPrefix?: string) {
     try {
-      const tickets = await this.fetchJiraTickets(filterPrefix);
+      this.log(`Fetching tickets...`);
+      // JQL: assignee = currentUser() AND status not in (Closed, Done)
+      let jql = 'assignee = currentUser() AND status not in (Closed, Done)';
+
+      if (filterPrefix && filterPrefix.trim()) {
+        const cleanPrefix = filterPrefix
+          .trim()
+          .toUpperCase()
+          .replace(/'/g, "\\'");
+        if (/^[A-Z]+$/.test(cleanPrefix)) {
+          jql += ` AND project = "${cleanPrefix}"`;
+        } else if (cleanPrefix.includes('-')) {
+          jql += ` AND key = "${cleanPrefix}"`;
+        } else {
+          jql += ` AND project = "${cleanPrefix}"`;
+        }
+      }
+
+      const tickets = await this.jiraService.searchTickets(jql);
 
       if (tickets.length === 0) {
         this.eventCallback({
@@ -199,35 +64,7 @@ ${comments}
       this.eventCallback({
         type: 'ticket_list',
         tickets: tickets.map((t) => {
-          let desc = '';
-          if (typeof t.fields.description === 'string') {
-            desc = t.fields.description;
-          } else if (
-            t.fields.description &&
-            typeof t.fields.description === 'object'
-          ) {
-            // Extremely basic ADF to text for preview
-            // ADF has content: [ { type: 'paragraph', content: [ { type: 'text', text: '...' } ] } ]
-            try {
-              // Just look for "text" fields recursively or JSON stringify
-              desc = '(Rich Text Description)';
-              // Better: extract some text
-              if (
-                t.fields.description.content &&
-                Array.isArray(t.fields.description.content)
-              ) {
-                desc = t.fields.description.content
-                  .map(
-                    (p: any) =>
-                      p.content?.map((c: any) => c.text || '').join('') || ''
-                  )
-                  .join(' ');
-              }
-            } catch (e) {
-              desc = '(Complex Description)';
-            }
-          }
-
+          const desc = this.jiraService.parseDescription(t.fields.description);
           return {
             key: t.key,
             summary: t.fields.summary,
@@ -237,92 +74,33 @@ ${comments}
         }),
       });
 
-      // We don't send 'done' yet, as we wait for user selection via a new API call
-      // But for this SSE connection, we are done sending the list.
       this.eventCallback({ type: 'done' });
-    } catch (e: any) {
-      this.log(`Error: ${e.message}`);
-      this.eventCallback({ type: 'error', message: e.message });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      this.log(`Error: ${msg}`);
+      this.eventCallback({ type: 'error', message: msg });
       this.eventCallback({ type: 'done' });
     }
-  }
-
-  private extractTextFromADF(node: any): string {
-    if (node.type === 'text') return node.text || '';
-    if (node.content && Array.isArray(node.content)) {
-      return node.content
-        .map((child: any) => this.extractTextFromADF(child))
-        .join('');
-    }
-    return '';
   }
 
   public async researchTickets(ticketKeys: string[]) {
     try {
       this.log(`Fetching details for ${ticketKeys.length} tickets...`);
-
-      // We need to fetch full details again for the selected tickets
-      // Construct JQL for specific keys
-      const host = process.env.JIRA_HOST;
-      const email = process.env.JIRA_EMAIL;
-      const token = process.env.JIRA_API_TOKEN;
-      const auth = Buffer.from(`${email}:${token}`).toString('base64');
-
       const jql = `key in (${ticketKeys.join(',')})`;
-      const url = `${host}/rest/api/3/search/jql`;
-
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          Authorization: `Basic ${auth}`,
-          Accept: 'application/json',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          jql,
-          fields: ['summary', 'description', 'status', 'comment'],
-          maxResults: ticketKeys.length,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch selected tickets details.`);
-      }
-
-      const data = await response.json();
-      const tickets = data.issues as JiraTicket[];
+      const tickets = await this.jiraService.searchTickets(jql, [
+        'summary',
+        'description',
+        'status',
+        'comment',
+      ]);
 
       let finalReport = '';
 
       for (const ticket of tickets) {
         this.log(`Processing ${ticket.key}: ${ticket.fields.summary}`);
 
-        // Flatten description if it's ADF (Atlassian Document Format) or object
-        let descriptionText = '';
-        if (typeof ticket.fields.description === 'string') {
-          descriptionText = ticket.fields.description;
-        } else if (ticket.fields.description) {
-          // Handle ADF for full analysis
-          try {
-            if (
-              ticket.fields.description.content &&
-              Array.isArray(ticket.fields.description.content)
-            ) {
-              descriptionText = ticket.fields.description.content
-                .map((p: any) => this.extractTextFromADF(p))
-                .join('\n');
-            } else {
-              descriptionText = JSON.stringify(ticket.fields.description);
-            }
-          } catch (e) {
-            descriptionText = 'Could not parse description.';
-          }
-        } else {
-          descriptionText = '(No description provided)';
-        }
-
-        this.log(
-          `Full extracted description length: ${descriptionText.length} chars`
+        const descriptionText = this.jiraService.parseDescription(
+          ticket.fields.description
         );
 
         // Extract comments
@@ -334,37 +112,25 @@ ${comments}
           const rawComments = ticket.fields.comment.comments
             .map((c) => {
               const author = c.author.displayName;
-              let body = '';
-              if (typeof c.body === 'string') {
-                body = c.body;
-              } else if (c.body && typeof c.body === 'object') {
-                // Try parsing ADF
-                try {
-                  if (c.body.content && Array.isArray(c.body.content)) {
-                    body = c.body.content
-                      .map((p: any) => this.extractTextFromADF(p))
-                      .join('\n');
-                  } else {
-                    body = JSON.stringify(c.body);
-                  }
-                } catch (e) {
-                  body = '(Error parsing rich text comment)';
-                }
-              } else {
-                body = '(Unknown comment format)';
-              }
+              const body = this.jiraService.parseDescription(c.body); // Reuse parse logic
               return `[${author}]: ${body}`;
             })
             .join('\n\n');
 
           this.log('Summarizing comments with AI...');
-          commentsText = await this.summarizeComments(rawComments);
+          const prompt = `
+            You are a helpful assistant. Please summarize the following Jira ticket comments into a concise summary of the conversation, highlighting key decisions, blockers, or clarifications.
+            Format the output as a bulleted list.
+          `;
+          commentsText = await this.bedrockService.summarizeText(
+            rawComments,
+            prompt
+          );
         }
 
         finalReport += `## [${ticket.key}] ${ticket.fields.summary}\n\n`;
         finalReport += `### Description\n${descriptionText}\n\n`;
         finalReport += `### Comments Summary\n${commentsText}\n\n`;
-
         finalReport += `\n---\n\n`;
 
         this.eventCallback({
@@ -372,20 +138,11 @@ ${comments}
           message: `Completed processing for ${ticket.key}`,
         });
 
-        // --- NEW: Trigger Cursor CLI ---
+        // --- Trigger Cursor CLI ---
         try {
-          // Checkout Branch
           const branchName = `feature/${ticket.key}`;
-          const rootDir = this.getProjectRoot();
           this.log(`Checking out git branch: ${branchName}`);
-
-          try {
-            await execAsync(`git checkout -b ${branchName}`, { cwd: rootDir });
-          } catch (e) {
-            // If branch exists, just checkout
-            this.log(`Branch might exist, switching to ${branchName}...`);
-            await execAsync(`git checkout ${branchName}`, { cwd: rootDir });
-          }
+          await this.gitService.checkoutBranch(branchName);
 
           const instructions = `
 # PRIMARY OBJECTIVE: ${ticket.key} - ${ticket.fields.summary}
@@ -431,237 +188,59 @@ You are an expert engineer tasked with completing the above objective. Your prio
 
           this.log(`Triggering Cursor Headless CLI with ${instructionFile}...`);
 
-          // Check if cursor-agent is installed
-          let cursorCmd = 'cursor-agent';
-          try {
-            await execAsync('which cursor-agent');
-          } catch (e) {
-            // Check common location ~/.local/bin/cursor-agent
-            const home = process.env.HOME;
-            const localBinPath = path.join(
-              home || '',
-              '.local/bin/cursor-agent'
-            );
-            if (home && fs.existsSync(localBinPath)) {
-              cursorCmd = localBinPath;
-              this.log(`Found cursor-agent at ${localBinPath}`);
-            } else {
-              const installMsg =
-                'Cursor CLI not found in PATH or ~/.local/bin. Please install it using: curl https://cursor.com/install -fsS | bash';
-              this.log(installMsg);
-              finalReport += `\n**Error:** ${installMsg}\n`;
-              throw new Error(installMsg);
+          const fullOutput = await this.cursorService.runAgent(
+            instructionPath,
+            {
+              onLog: (msg) => this.log(msg),
+              onTextDelta: (_text) => {
+                // We could stream text here if needed, but we rely on logs mostly
+              },
             }
+          );
+
+          this.log('Cursor Agent completed successfully.');
+          finalReport += `\n### Cursor Agent Output Summary\n${fullOutput.trim()}\n`;
+
+          const diffStat = await this.gitService.getDiffStat();
+          if (diffStat) {
+            finalReport += `\n### Cursor Agent Changes\n\`\`\`\n${diffStat.trim()}\n\`\`\`\n`;
+          } else {
+            finalReport += `\n### Cursor Agent Changes\nNo changes detected or commit failed.\n`;
           }
 
-          // Using 'cursor-agent' in headless mode (print mode) with streaming
-          // -p: print mode (non-interactive)
-          // --force: allow file modifications
-          // --model: specify the model to use
-          // --output-format stream-json: get real-time JSON events
-          // --stream-partial-output: get text deltas
-          // --approve-mcps: auto-approve MCP tool calls
-
-          const spawnCwd = path.resolve(process.cwd(), '..');
-          this.log(`[System] Spawning cursor-agent in: ${spawnCwd}`);
-
-          await new Promise<void>((resolve, reject) => {
-            const child = spawn(
-              cursorCmd,
-              [
-                '-p',
-                '--force',
-                '--approve-mcps',
-                '--model',
-                'gemini-3-pro',
-                '--output-format',
-                'stream-json',
-                '--stream-partial-output',
-                `Please read and follow the instructions in ${instructionPath}`,
-              ],
-              {
-                cwd: spawnCwd,
-                env: { ...process.env },
-                shell: false,
-                stdio: ['ignore', 'pipe', 'pipe'],
-              }
-            );
-
-            let stdoutBuffer = '';
-            let textBuffer = '';
-            let agentFullOutput = '';
-            let hasReceivedData = false;
-
-            child.on('spawn', () => {
-              this.log(`[System] Cursor process spawned (PID: ${child.pid})`);
-            });
-
-            child.stdout.on('data', (data) => {
-              if (!hasReceivedData) {
-                // this.log('[System] Receiving data from Cursor Agent...');
-                hasReceivedData = true;
-              }
-
-              stdoutBuffer += data.toString();
-              const lines = stdoutBuffer.split('\n');
-              stdoutBuffer = lines.pop() || ''; // Keep last incomplete line
-
-              for (const line of lines) {
-                if (!line.trim()) continue;
-                try {
-                  const event = JSON.parse(line);
-
-                  if (event.type === 'thinking') {
-                    // Log thinking deltas
-                    if (event.subtype === 'delta' && event.text) {
-                      // We could accumulate this, but for now just show a spinner or simplified log
-                      // process.stdout.write('.') // can't do this easily in this context
-                    } else if (event.subtype === 'started') {
-                      this.log('[Agent] Thinking...');
-                    }
-                  } else if (
-                    event.type === 'assistant' &&
-                    event.message?.content
-                  ) {
-                    // Accumulate text deltas
-                    const contentList = event.message.content;
-                    if (Array.isArray(contentList)) {
-                      for (const item of contentList) {
-                        if (item.type === 'text' && item.text) {
-                          textBuffer += item.text;
-                          agentFullOutput += item.text;
-                        }
-                      }
-                    }
-
-                    if (textBuffer.includes('\n')) {
-                      const textLines = textBuffer.split('\n');
-                      // Log all complete lines
-                      for (let i = 0; i < textLines.length - 1; i++) {
-                        const msg = textLines[i].trim();
-                        if (msg) {
-                          this.log(`[Agent] ${msg}`);
-                        }
-                      }
-                      // Keep the last part
-                      textBuffer = textLines[textLines.length - 1];
-                    }
-                  } else if (event.type === 'tool_call') {
-                    // Flush any pending text
-                    if (textBuffer.trim()) {
-                      this.log(`[Agent] ${textBuffer.trim()}`);
-                      textBuffer = '';
-                    }
-
-                    // Extract tool name safely
-                    let toolName = 'unknown tool';
-                    if (event.tool_call) {
-                      const keys = Object.keys(event.tool_call);
-                      if (keys.length > 0) {
-                        toolName = keys[0];
-                      }
-                    } else if (event.call_id) {
-                      toolName = `call_${event.call_id.slice(0, 8)}`;
-                    }
-
-                    const subtype = event.subtype || 'update';
-
-                    if (subtype === 'started') {
-                      this.log(`[Tool] Executing: ${toolName}...`);
-                    } else if (subtype === 'completed') {
-                      this.log(`[Tool] Finished: ${toolName}`);
-                    }
-                  }
-                } catch (e) {
-                  // Fallback for non-JSON lines
-                  const raw = line.trim();
-                  if (raw) {
-                    this.log(`[Cursor] ${raw}`);
-                  }
-                }
-              }
-            });
-
-            child.stderr.on('data', (data) => {
-              const output = data.toString();
-              // Log all stderr to help debug hanging
-              if (output.trim()) {
-                this.log(`[Cursor Info] ${output.trim()}`);
-              }
-            });
-
-            child.on('close', async (code) => {
-              // Flush remaining text
-              if (textBuffer) {
-                this.log(`[Agent] ${textBuffer}`);
-              }
-
-              if (code === 0) {
-                this.log('Cursor Agent completed successfully.');
-
-                if (agentFullOutput) {
-                  finalReport += `\n### Cursor Agent Output Summary\n${agentFullOutput.trim()}\n`;
-                }
-
-                // Get summary of changes
-                try {
-                  const { stdout: diffStat } = await execAsync(
-                    'git show --stat --oneline --no-color',
-                    { cwd: spawnCwd }
-                  );
-                  if (diffStat) {
-                    finalReport += `\n### Cursor Agent Changes\n\`\`\`\n${diffStat.trim()}\n\`\`\`\n`;
-                  } else {
-                    finalReport += `\n### Cursor Agent Changes\nNo changes detected or commit failed.\n`;
-                  }
-                } catch (e) {
-                  this.log(`Failed to get git summary: ${e}`);
-                  finalReport += `\n### Cursor Agent Changes\n(Could not retrieve git summary)\n`;
-                }
-
-                // Log mission completion
-                const questLog: QuestLog = {
-                  id: `log-${Date.now()}`,
-                  questId: 'jira-ticket-research',
-                  timestamp: new Date().toISOString(),
-                  durationSeconds: 0, // Not tracked precisely here yet
-                  status: 'success',
-                  steps: [], // No steps for this type of quest
-                  stepCount: 0,
-                  aiStepCount: 0,
-                  scriptStepCount: 0,
-                  summary: {
-                    report: finalReport,
-                    tickets: ticketKeys,
-                  },
-                };
-                QuestLogManager.saveLog(questLog);
-
-                resolve();
-              } else {
-                const errorMsg = `Cursor agent exited with code ${code}`;
-                this.log(errorMsg);
-                reject(new Error(errorMsg));
-              }
-            });
-
-            child.on('error', (err) => {
-              this.log(`Failed to start cursor-agent: ${err.message}`);
-              reject(err);
-            });
-          });
-        } catch (cursorError: any) {
-          this.log(`Failed to trigger Cursor CLI: ${cursorError.message}`);
+          // Log mission completion
+          const questLog: QuestLog = {
+            id: `log-${Date.now()}`,
+            questId: 'jira-ticket-research',
+            timestamp: new Date().toISOString(),
+            durationSeconds: 0,
+            status: 'success',
+            steps: [],
+            stepCount: 0,
+            aiStepCount: 0,
+            scriptStepCount: 0,
+            summary: {
+              report: finalReport,
+              tickets: ticketKeys,
+            },
+          };
+          QuestLogManager.saveLog(questLog);
+        } catch (cursorError: unknown) {
+          const errorMsg =
+            cursorError instanceof Error
+              ? cursorError.message
+              : String(cursorError);
+          this.log(`Failed to trigger Cursor CLI: ${errorMsg}`);
           finalReport += `\n**Warning:** Failed to trigger Cursor CLI automatically.\n`;
         }
-        // -------------------------------
       }
 
       this.eventCallback({ type: 'result', text: finalReport });
       this.eventCallback({ type: 'done' });
-    } catch (e: any) {
-      this.log(`Processing Error: ${e.message}`);
-      this.eventCallback({ type: 'error', message: e.message });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      this.log(`Processing Error: ${msg}`);
+      this.eventCallback({ type: 'error', message: msg });
       this.eventCallback({ type: 'done' });
     }
   }

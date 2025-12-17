@@ -9,10 +9,12 @@ export class KnowledgeBase {
   private static getFilePath(): string {
     // Determine the base path based on environment or fallback to process.cwd()
     // In a Next.js API route, process.cwd() is usually the project root.
-    return path.join(
-      process.cwd(),
-      'personal-agent-quests/lib/quests/selector-knowledge.json'
-    );
+    const cwd = process.cwd();
+    const baseDir = cwd.endsWith('personal-agent-quests')
+      ? cwd
+      : path.join(cwd, 'personal-agent-quests');
+
+    return path.join(baseDir, 'data', 'selector-knowledge.json');
   }
 
   private static load(): SelectorData {
