@@ -102,5 +102,9 @@ export type AgentEvent =
   | { type: 'screenshot'; image: string }
   | { type: 'url_update'; url: string } // NEW: update url
   | { type: 'result'; text: string }
+  | {
+      type: 'ticket_list';
+      tickets: { key: string; summary: string; description?: string | null }[];
+    } // NEW: ticket selection
   | { type: 'error'; message: string }
   | { type: 'done' };

@@ -5,10 +5,14 @@ export default function LogViewer() {
   const [logs, setLogs] = useState<QuestLog[]>([]);
   const [selectedLog, setSelectedLog] = useState<QuestLog | null>(null);
 
-  useEffect(() => {
+  const fetchLogs = () => {
     fetch('/api/logs')
       .then((res) => res.json())
       .then((data) => setLogs(data.logs || []));
+  };
+
+  useEffect(() => {
+    fetchLogs();
   }, []);
 
   return (
@@ -24,9 +28,29 @@ export default function LogViewer() {
       }}
     >
       <div
-        style={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: '20px',
+        }}
       >
         <h1 style={{ margin: 0 }}>Quest Log Viewer</h1>
+        <button
+          onClick={fetchLogs}
+          style={{
+            padding: '8px 16px',
+            backgroundColor: '#0969da',
+            color: 'white',
+            border: 'none',
+            borderRadius: '6px',
+            cursor: 'pointer',
+            fontSize: '14px',
+            fontWeight: 'bold',
+          }}
+        >
+          Refresh Logs
+        </button>
       </div>
 
       <div style={{ display: 'flex', gap: '20px', flex: 1, minHeight: 0 }}>

@@ -6,6 +6,8 @@ interface ActiveQuestProps {
   questName: string;
   instructions: string;
   onClose: (sessionId: string) => void;
+  hideBrowser?: boolean;
+  userInput?: string;
 }
 
 type QuestStatus =
@@ -25,6 +27,8 @@ export const ActiveQuest: React.FC<ActiveQuestProps> = ({
   questName,
   instructions,
   onClose,
+  hideBrowser,
+  userInput,
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -34,6 +38,10 @@ export const ActiveQuest: React.FC<ActiveQuestProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<QuestStatus>('starting');
   const [takeoverStep, setTakeoverStep] = useState<number | null>(null);
+  const [ticketList, setTicketList] = useState<
+    { key: string; summary: string; description?: string | null }[]
+  >([]);
+  const [selectedTickets, setSelectedTickets] = useState<string[]>([]);
   const [browserUrl, setBrowserUrl] = useState<string>('Agent Browser Session');
   const [startTime, setStartTime] = useState<number>(Date.now());
   const [elapsedTime, setElapsedTime] = useState<string>('00:00');
@@ -43,7 +51,16 @@ export const ActiveQuest: React.FC<ActiveQuestProps> = ({
 
   // Timer effect
   useEffect(() => {
-    if (!loading) return;
+    // Stop timer if we are done or failed or successful
+    const isFinished = [
+      'failed',
+      'success_ai',
+      'success_script',
+      'success_takeover',
+    ].includes(status);
+
+    if (!loading || isFinished) return;
+
     const interval = setInterval(() => {
       const now = Date.now();
       const diff = Math.floor((now - startTime) / 1000);
@@ -54,14 +71,112 @@ export const ActiveQuest: React.FC<ActiveQuestProps> = ({
       setElapsedTime(`${minutes}:${seconds}`);
     }, 1000);
     return () => clearInterval(interval);
-  }, [loading, startTime]);
+  }, [loading, startTime, status]);
 
-  // Auto-scroll logs
+  // Auto-scroll logs: SCOPED to the log container, not window
   useEffect(() => {
-    if (autoScroll) {
-      logsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (autoScroll && logsEndRef.current) {
+      // Use scrollIntoView with block: 'nearest' or just scrollTop on parent to avoid window jump
+      // Using scrollIntoView on the element can sometimes scroll the whole page if it's off screen.
+      // Safer approach for chat logs in a container:
+      const parent = logsEndRef.current.parentElement;
+      if (parent) {
+        parent.scrollTop = parent.scrollHeight;
+      }
     }
   }, [logs, autoScroll]);
+
+  const handleTicketToggle = (key: string) => {
+    setSelectedTickets([key]); // Single select
+  };
+
+  const handleResearchSelected = async () => {
+    setTicketList([]); // Clear list to show progress
+    setLoading(true);
+    setStatus('in_progress_ai'); // Or similar status
+
+    // Send the selected tickets back to the server to continue
+    // We need to re-initiate the fetch loop effectively, or hit a new endpoint?
+    // Since this is SSE, we can't easily "reply". We have to start a new request/session context or restart the fetch.
+    // Re-calling startQuest with new params works if we designed it to handle "continue" or "phase 2".
+    // Our API handler supports `selectedTickets` now.
+
+    try {
+      const res = await fetch('/api/agent', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          query: instructions,
+          questId: questId,
+          selectedTickets, // Pass selected tickets
+        }),
+      });
+
+      // We reuse the existing stream reader logic if we just replace the body?
+      // No, `startQuest` is inside useEffect. We need to trigger it or duplicate logic.
+      // Actually, simpler: just let the current SSE connection close (it sent 'done' for phase 1),
+      // and start a NEW connection/request that will handle phase 2.
+
+      // But `startQuest` is controlled by useEffect on [questId].
+      // We can manually call a function to stream the response.
+
+      // Let's refactor startQuest to be callable.
+      await streamResponse(res);
+    } catch (e) {
+      console.error(e);
+      setError('Failed to start research phase');
+    }
+  };
+
+  // Refactored stream reader to be reusable
+  const streamResponse = async (res: Response) => {
+    if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
+    if (!res.body) throw new Error('No body');
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      const chunk = decoder.decode(value, { stream: true });
+      buffer += chunk;
+      const parts = buffer.split('\n\n');
+      buffer = parts.pop() || '';
+
+      for (const part of parts) {
+        const lines = part.split('\n');
+        for (const line of lines) {
+          if (line.trim().startsWith('data: ')) {
+            try {
+              const jsonStr = line.replace('data: ', '').trim();
+              if (!jsonStr) continue;
+              const data = JSON.parse(jsonStr);
+
+              // Handle events (duplicate of useEffect logic, simplified)
+              if (data.type === 'log') {
+                setLogs((prev) => [...prev, data.message]);
+              } else if (data.type === 'result') {
+                setResponse(data.text);
+              } else if (data.type === 'done') {
+                setLoading(false);
+                setStatus('success_ai');
+              } else if (data.type === 'ticket_list') {
+                setTicketList(data.tickets);
+                setLoading(false);
+              }
+            } catch (e) {
+              console.error(e);
+            }
+          }
+        }
+      }
+    }
+  };
 
   useEffect(() => {
     let active = true;
@@ -81,6 +196,7 @@ export const ActiveQuest: React.FC<ActiveQuestProps> = ({
           body: JSON.stringify({
             query: instructions,
             questId: questId,
+            userInput: userInput,
           }),
           signal: controller.signal,
         });
@@ -154,6 +270,10 @@ export const ActiveQuest: React.FC<ActiveQuestProps> = ({
                     setLogs((prev) => [...prev, `[UI] Screenshot updated`]);
                   } else if (data.type === 'url_update') {
                     setBrowserUrl(data.url);
+                  } else if (data.type === 'ticket_list') {
+                    setTicketList(data.tickets);
+                    // Don't auto-complete, wait for user input
+                    setLoading(false); // Stop the spinner/timer essentially, but keep session active
                   } else if (data.type === 'result') {
                     setResponse(data.text);
                   } else if (data.type === 'error') {
@@ -190,7 +310,7 @@ export const ActiveQuest: React.FC<ActiveQuestProps> = ({
 
     return () => {
       active = false;
-      controller.abort();
+      controller.abort(); // Cancel any pending request
     };
   }, [questId, instructions]);
 
@@ -223,6 +343,12 @@ export const ActiveQuest: React.FC<ActiveQuestProps> = ({
     }
   };
 
+  const activeTicket = selectedTickets[0];
+  const dynamicQuestName =
+    questId === 'jira-ticket-research' && activeTicket
+      ? `Jira Ticket Research (${activeTicket})`
+      : questName;
+
   return (
     <div
       style={{
@@ -252,14 +378,26 @@ export const ActiveQuest: React.FC<ActiveQuestProps> = ({
               transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)',
               transition: 'transform 0.2s',
               fontSize: '12px',
+              display: 'flex',
+              alignItems: 'center',
             }}
           >
             ▼
           </span>
-          <h3 style={{ margin: 0, fontSize: '16px' }}>{questName}</h3>
-          <span style={{ fontSize: '12px', color: '#666' }}>({sessionId})</span>
+          <h3 style={{ margin: 0, fontSize: '16px', lineHeight: '1.2' }}>
+            {dynamicQuestName}
+          </h3>
+          <span style={{ fontSize: '12px', color: '#666', lineHeight: '1' }}>
+            ({sessionId})
+          </span>
           <div
-            style={{ marginLeft: '12px', fontSize: '14px', fontWeight: 'bold' }}
+            style={{
+              marginLeft: '12px',
+              fontSize: '14px',
+              fontWeight: 'bold',
+              display: 'flex',
+              alignItems: 'center',
+            }}
           >
             {getStatusBadge()}
           </div>
@@ -269,6 +407,8 @@ export const ActiveQuest: React.FC<ActiveQuestProps> = ({
               color: '#666',
               marginLeft: '12px',
               fontFamily: 'monospace',
+              display: 'flex',
+              alignItems: 'center',
             }}
           >
             ⏱ {elapsedTime}
@@ -313,143 +453,250 @@ export const ActiveQuest: React.FC<ActiveQuestProps> = ({
               width: '100%',
             }}
           >
-            {/* Simulated "Iframe" Browser View */}
-            <div
-              style={{
-                width: '700px',
-                height: '500px',
-                border: '1px solid #ccc',
-                borderRadius: '8px',
-                overflow: 'hidden',
-                backgroundColor: '#f5f5f5',
-                position: 'relative',
-                boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
-                display: 'flex',
-                flexDirection: 'column',
-              }}
-            >
+            {/* Ticket Selection UI */}
+            {ticketList.length > 0 && !response && (
               <div
                 style={{
-                  background: '#e0e0e0',
-                  padding: '8px 12px',
-                  borderBottom: '1px solid #ccc',
-                  textAlign: 'left',
-                  fontSize: '12px',
-                  fontFamily: 'system-ui',
-                  display: 'flex',
-                  alignItems: 'center',
+                  width: '100%',
+                  maxWidth: '800px',
+                  background: '#f6f8fa',
+                  border: '1px solid #d0d7de',
+                  borderRadius: '6px',
+                  padding: '20px',
+                  marginBottom: '20px',
                 }}
               >
+                <h3 style={{ marginTop: 0 }}>Select Tickets to Research</h3>
+                <p style={{ color: '#666', fontSize: '14px' }}>
+                  Found {ticketList.length} tickets assigned to you matching
+                  your criteria.
+                </p>
                 <div
-                  style={{ display: 'flex', gap: '6px', marginRight: '12px' }}
+                  style={{
+                    maxHeight: '300px',
+                    overflowY: 'auto',
+                    border: '1px solid #eee',
+                    background: 'white',
+                    borderRadius: '4px',
+                    marginBottom: '15px',
+                  }}
                 >
-                  <div
-                    style={{
-                      width: '10px',
-                      height: '10px',
-                      borderRadius: '50%',
-                      background: '#ff5f56',
-                      border: '1px solid #e0443e',
-                    }}
-                  ></div>
-                  <div
-                    style={{
-                      width: '10px',
-                      height: '10px',
-                      borderRadius: '50%',
-                      background: '#ffbd2e',
-                      border: '1px solid #dea123',
-                    }}
-                  ></div>
-                  <div
-                    style={{
-                      width: '10px',
-                      height: '10px',
-                      borderRadius: '50%',
-                      background: '#27c93f',
-                      border: '1px solid #1aab29',
-                    }}
-                  ></div>
+                  {ticketList.map((ticket) => (
+                    <div
+                      key={ticket.key}
+                      onClick={() => handleTicketToggle(ticket.key)}
+                      style={{
+                        padding: '10px',
+                        borderBottom: '1px solid #eee',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                        cursor: 'pointer',
+                        background: selectedTickets.includes(ticket.key)
+                          ? '#e6f7ff'
+                          : 'white',
+                      }}
+                    >
+                      <input
+                        type="radio"
+                        checked={selectedTickets.includes(ticket.key)}
+                        onChange={() => {
+                          setSelectedTickets([ticket.key]); // Single select
+                        }}
+                        style={{ cursor: 'pointer' }}
+                        name="ticket-selection"
+                      />
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontWeight: 'bold' }}>{ticket.key}</div>
+                        <div style={{ fontSize: '14px', color: '#555' }}>
+                          {ticket.summary}
+                        </div>
+                        {ticket.description && (
+                          <div
+                            style={{
+                              fontSize: '12px',
+                              color: '#777',
+                              marginTop: '4px',
+                              fontStyle: 'italic',
+                            }}
+                          >
+                            {ticket.description}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
                 </div>
                 <div
                   style={{
-                    flex: 1,
-                    background: 'white',
-                    borderRadius: '4px',
-                    padding: '2px 8px',
-                    fontSize: '11px',
-                    color: '#666',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
+                    display: 'flex',
+                    justifyContent: 'flex-end',
+                    gap: '10px',
                   }}
-                  title={browserUrl}
                 >
-                  {browserUrl}
+                  <button
+                    disabled={selectedTickets.length === 0}
+                    onClick={handleResearchSelected}
+                    style={{
+                      padding: '8px 16px',
+                      backgroundColor:
+                        selectedTickets.length === 0 ? '#ccc' : '#1f883d',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '6px',
+                      cursor:
+                        selectedTickets.length === 0
+                          ? 'not-allowed'
+                          : 'pointer',
+                      fontWeight: 'bold',
+                    }}
+                  >
+                    Research Selected ({selectedTickets.length})
+                  </button>
                 </div>
               </div>
+            )}
 
+            {/* Simulated "Iframe" Browser View */}
+            {!hideBrowser && (
               <div
                 style={{
-                  flex: 1,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
+                  width: '700px',
+                  height: '500px',
+                  border: '1px solid #ccc',
+                  borderRadius: '8px',
                   overflow: 'hidden',
-                  backgroundColor: 'white',
+                  backgroundColor: '#f5f5f5',
                   position: 'relative',
+                  boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
+                  display: 'flex',
+                  flexDirection: 'column',
                 }}
               >
-                {screenshot ? (
-                  <img
-                    key={screenshot.length + Date.now()}
-                    src={`data:image/jpeg;base64,${screenshot}`}
-                    alt="Browser Screenshot"
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'contain',
-                    }}
-                  />
-                ) : (
+                <div
+                  style={{
+                    background: '#e0e0e0',
+                    padding: '8px 12px',
+                    borderBottom: '1px solid #ccc',
+                    textAlign: 'left',
+                    fontSize: '12px',
+                    fontFamily: 'system-ui',
+                    display: 'flex',
+                    alignItems: 'center',
+                  }}
+                >
                   <div
-                    style={{
-                      color: '#999',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                    }}
+                    style={{ display: 'flex', gap: '6px', marginRight: '12px' }}
                   >
-                    <div style={{ fontSize: '40px', marginBottom: '10px' }}>
-                      🤖
-                    </div>
-                    <div>Waiting to start quest...</div>
+                    <div
+                      style={{
+                        width: '10px',
+                        height: '10px',
+                        borderRadius: '50%',
+                        background: '#ff5f56',
+                        border: '1px solid #e0443e',
+                      }}
+                    ></div>
+                    <div
+                      style={{
+                        width: '10px',
+                        height: '10px',
+                        borderRadius: '50%',
+                        background: '#ffbd2e',
+                        border: '1px solid #dea123',
+                      }}
+                    ></div>
+                    <div
+                      style={{
+                        width: '10px',
+                        height: '10px',
+                        borderRadius: '50%',
+                        background: '#27c93f',
+                        border: '1px solid #1aab29',
+                      }}
+                    ></div>
                   </div>
-                )}
-
-                {loading && screenshot && (
                   <div
                     style={{
-                      position: 'absolute',
-                      bottom: '10px',
-                      right: '10px',
-                      background: 'rgba(0,0,0,0.7)',
-                      color: 'white',
-                      padding: '4px 8px',
+                      flex: 1,
+                      background: 'white',
                       borderRadius: '4px',
-                      fontSize: '12px',
+                      padding: '2px 8px',
+                      fontSize: '11px',
+                      color: '#666',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
                     }}
+                    title={browserUrl}
                   >
-                    ● Live
+                    {browserUrl}
                   </div>
-                )}
+                </div>
+
+                <div
+                  style={{
+                    flex: 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    overflow: 'hidden',
+                    backgroundColor: 'white',
+                    position: 'relative',
+                  }}
+                >
+                  {screenshot ? (
+                    <img
+                      key={screenshot.length + Date.now()}
+                      src={`data:image/jpeg;base64,${screenshot}`}
+                      alt="Browser Screenshot"
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'contain',
+                      }}
+                    />
+                  ) : (
+                    <div
+                      style={{
+                        color: '#999',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <div style={{ fontSize: '40px', marginBottom: '10px' }}>
+                        🤖
+                      </div>
+                      <div>Waiting to start quest...</div>
+                    </div>
+                  )}
+
+                  {loading && screenshot && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        bottom: '10px',
+                        right: '10px',
+                        background: 'rgba(0,0,0,0.7)',
+                        color: 'white',
+                        padding: '4px 8px',
+                        borderRadius: '4px',
+                        fontSize: '12px',
+                      }}
+                    >
+                      ● Live
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Live Logs */}
             <div
               style={{
-                width: '400px',
+                width: '100%',
+                maxWidth: hideBrowser ? '800px' : '400px',
                 height: '500px',
                 border: '1px solid #333',
                 borderRadius: '8px',

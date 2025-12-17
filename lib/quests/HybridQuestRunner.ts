@@ -38,7 +38,7 @@ export class HybridQuestRunner {
       credentials: fromNodeProviderChain({ profile }),
     });
 
-    this.modelId = 'eu.anthropic.claude-sonnet-4-5-20250929-v1:0';
+    this.modelId = 'eu.anthropic.claude-sonnet-4-20250514-v1:0';
   }
 
   private generateContext(): QuestContext {
@@ -48,7 +48,8 @@ export class HybridQuestRunner {
       .toLowerCase();
     const day = date.getDate();
     const shortDate = `${shortMonth}${day}`;
-    const randomNum = Math.floor(Math.random() * 100) + 1;
+    // Change: 6 random numbers (100000 to 999999) to decrease collision
+    const randomNum = Math.floor(Math.random() * 900000) + 100000;
     const dynamicEmail = `jordan.mcinnis+${shortDate}${randomNum}@hellofresh.ca`;
 
     return {
@@ -336,14 +337,23 @@ export class HybridQuestRunner {
         }
 
         if (scriptFailedIndex === -1) {
-          this.log('Quest completed successfully using cached script!');
-          this.saveQuestLog(questId, 'success');
-          this.eventCallback({
-            type: 'result',
-            text: 'Quest completed efficiently using saved script.',
-          });
-          this.eventCallback({ type: 'done' });
-          return;
+          this.log('Script execution finished. Performing AI verification...');
+          const review = await this.performAIReview(questId, questDescription);
+
+          if (!review.success) {
+            this.log(`Script finished but AI review failed: ${review.reason}`);
+            // Force handover to AI to fix/finish
+            scriptFailedIndex = existingScript.steps.length;
+          } else {
+            this.log('Quest completed successfully using cached script!');
+            this.saveQuestLog(questId, 'success', review.extractedData);
+            this.eventCallback({
+              type: 'result',
+              text: 'Quest completed efficiently using saved script.',
+            });
+            this.eventCallback({ type: 'done' });
+            return;
+          }
         }
       } else {
         this.log('No existing script found. Starting fresh with AI.');
@@ -363,15 +373,19 @@ export class HybridQuestRunner {
       // scriptFailedIndex is i.
       // So we are good to go. The recorded steps are only the valid ones up to the crash.
 
-      this.log(
-        `Handing over to AI. Context: Script failed at index ${scriptFailedIndex}`
-      );
+      if (scriptFailedIndex !== -1) {
+        this.log(
+          `Handing over to AI. Context: Script failed at index ${scriptFailedIndex}`
+        );
 
-      // Force status update to AI Takeover
-      this.eventCallback({
-        type: 'log',
-        message: 'Switching to AI mode (Force Takeover)',
-      });
+        // Force status update to AI Takeover
+        this.eventCallback({
+          type: 'log',
+          message: 'Switching to AI mode (Force Takeover)',
+        });
+      } else {
+        this.log('Starting AI Agent execution...');
+      }
 
       const lastStep = this.recordedSteps[this.recordedSteps.length - 1];
       const stepHistory = this.recordedSteps
@@ -398,28 +412,74 @@ export class HybridQuestRunner {
           : undefined
       );
 
-      // 3. Save updated script
-      // We overwrite the old script with the new sequence (Valid Old Steps + New AI Steps)
-      if (this.recordedSteps.length > 0) {
-        this.log('Saving updated script for future runs...');
-        ScriptManager.saveScript(questId, {
-          id: questId,
-          name: questId, // TODO: generate better name
-          description: questDescription,
-          steps: this.recordedSteps,
-          lastUpdated: new Date().toISOString(),
-          successCriteria: existingScript?.successCriteria, // Preserve success criteria
-        });
+      // 3. Final AI Review
+      this.log('Requesting final AI review of mission status...');
+      let reviewResult = await this.performAIReview(questId, questDescription);
+
+      if (!reviewResult.success) {
+        this.log(
+          `AI Review Failed: ${reviewResult.reason}. Attempting to fix (one-time retry)...`
+        );
+
+        // Give a small step budget boost for the fix attempt if we are close to the limit
+        if (this.recordedSteps.length >= this.maxSteps - 5) {
+          this.maxSteps += 10;
+          this.log(`Extended step budget to ${this.maxSteps} for fix attempt.`);
+        }
+
+        const stepHistory = this.recordedSteps
+          .map((s, i) => `${i + 1}. ${s.description} (${s.status})`)
+          .join('\n');
+
+        await this.runAI(
+          questDescription,
+          `CRITICAL: The previous execution was deemed unsuccessful by the QA Agent.
+             REASON: ${reviewResult.reason}
+
+             HISTORY OF EXECUTED STEPS:
+             ${stepHistory}
+
+             YOUR TASK:
+             Fix the issue and complete the quest. Verify the state before stopping.
+             You are continuing from the current state shown in the screenshot.`
+        );
+
+        // Second review
+        this.log('Requesting second AI review after fix attempt...');
+        reviewResult = await this.performAIReview(questId, questDescription);
       }
 
-      // 4. Final AI Review
-      this.log('Requesting final AI review of mission status...');
-      const reviewResult = await this.performAIReview(
-        questId,
-        questDescription
-      );
-
       if (reviewResult.success) {
+        // Save updated script only if successful
+        if (this.recordedSteps.length > 0) {
+          // Ensure every generated script ends with a wait action
+          const lastRecordedStep =
+            this.recordedSteps[this.recordedSteps.length - 1];
+          if (
+            lastRecordedStep.type !== 'wait' &&
+            lastRecordedStep.type !== 'random_wait'
+          ) {
+            this.log('Appending final wait step to script...');
+            this.recordedSteps.push({
+              type: 'wait',
+              params: { duration: 2000 },
+              description: 'Final Wait',
+              timestamp: new Date().toISOString(),
+              status: 'success',
+            });
+          }
+
+          this.log('Saving updated script for future runs...');
+          ScriptManager.saveScript(questId, {
+            id: questId,
+            name: questId, // TODO: generate better name
+            description: questDescription,
+            steps: this.recordedSteps,
+            lastUpdated: new Date().toISOString(),
+            successCriteria: existingScript?.successCriteria, // Preserve success criteria
+          });
+        }
+
         this.saveQuestLog(questId, 'success', reviewResult.extractedData);
         this.eventCallback({ type: 'done' });
       } else {
@@ -739,8 +799,6 @@ export class HybridQuestRunner {
           } else if (toolName === 'type_text') {
             // Resolve placeholders in text for description
             const resolvedText = this.applyContextSubstitutions(toolInput).text;
-            // Also update the recordedParams with resolved text for storage
-            recordedParams.text = resolvedText;
             stepDescription = `AI Action: type "${resolvedText}"`;
           }
 

@@ -10,6 +10,29 @@
     "#downshift-0-toggle-button",
     "input#expiration",
     "input[name='address1']",
-    "input[name='phone']"
+    "input[name='phone']",
+    "input#credit-card-number",
+    "input#cvv",
+    "input[name='lastName']"
+  ],
+  "https://www-staging.factor75.com/plans": [
+    "text=Save time in the kitchen",
+    "button:has-text('Continue')"
+  ],
+  "https://www-staging.factor75.com/signup/FJ-RP-12-1-0": [
+    "[data-zest=\"factor\"]:has-text('Log in')",
+    "input[value*=\"jordan.mcinnis\"]"
+  ],
+  "https://www-staging.factor75.com/checkout-success": [
+    "[role=\"dialog\"] button"
+  ],
+  "https://www-staging.hellofresh.com/checkout": [
+    "input[placeholder*=\"First name\"]",
+    "text=New York",
+    "#credit-card-number",
+    "#expiration",
+    "#cvv",
+    "input:focus",
+    "div:has-text('State *')"
   ]
 }

@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { HybridQuestRunner } from '../../lib/quests/HybridQuestRunner';
+import { JiraQuestRunner } from '../../lib/quests/JiraQuestRunner';
 import { FACTOR75_LOGIN_QUEST_ID } from '../../lib/quests/types';
 
 export default async function handler(
@@ -10,7 +11,7 @@ export default async function handler(
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { query, questId } = req.body;
+  const { query, questId, userInput, selectedTickets } = req.body;
   if (!query) {
     return res.status(400).json({ error: 'Query is required' });
   }
@@ -31,14 +32,15 @@ export default async function handler(
     }
   };
 
-  // Use the ID constant for Factor75, but in a real app this would come from params
-  const runner = new HybridQuestRunner((event) => {
+  const eventHandler = (event: any) => {
     if (event.type === 'log') {
       sendEvent('log', { message: event.message });
     } else if (event.type === 'screenshot') {
       sendEvent('screenshot', { image: event.image });
     } else if (event.type === 'url_update') {
       sendEvent('url_update', { url: event.url });
+    } else if (event.type === 'ticket_list') {
+      sendEvent('ticket_list', { tickets: event.tickets });
     } else if (event.type === 'result') {
       sendEvent('result', { text: event.text });
     } else if (event.type === 'error') {
@@ -47,7 +49,20 @@ export default async function handler(
       sendEvent('done', {});
       res.end();
     }
-  }, 100); // Increased max steps to 60 for long funnels
+  };
+
+  if (questId === 'jira-ticket-research') {
+    const runner = new JiraQuestRunner(eventHandler);
+    if (selectedTickets) {
+      await runner.researchTickets(selectedTickets);
+    } else {
+      await runner.run(userInput);
+    }
+    return;
+  }
+
+  // Use the ID constant for Factor75, but in a real app this would come from params
+  const runner = new HybridQuestRunner(eventHandler, 100); // Increased max steps to 60 for long funnels
 
   await runner.run(questId || FACTOR75_LOGIN_QUEST_ID, query);
 }

@@ -9,6 +9,8 @@ interface QuestSession {
   questName: string;
   instructions: string;
   startedAt: number;
+  hideBrowser?: boolean;
+  userInput?: string;
 }
 
 type View = 'dashboard' | 'logs';
@@ -16,10 +18,16 @@ type View = 'dashboard' | 'logs';
 export default function Home() {
   const [currentView, setCurrentView] = useState<View>('dashboard');
   const [selectedQuestId, setSelectedQuestId] = useState<string>(QUESTS[0].id);
+  const [userInput, setUserInput] = useState<string>('');
   const [sessions, setSessions] = useState<QuestSession[]>([]);
 
   const selectedQuest =
     QUESTS.find((q) => q.id === selectedQuestId) || QUESTS[0];
+
+  // Reset user input when quest selection changes
+  React.useEffect(() => {
+    setUserInput('');
+  }, [selectedQuestId]);
 
   const handleStartQuest = () => {
     const newSession: QuestSession = {
@@ -28,6 +36,8 @@ export default function Home() {
       questName: selectedQuest.name,
       instructions: selectedQuest.instructions,
       startedAt: Date.now(),
+      hideBrowser: selectedQuest.hideBrowser,
+      userInput: userInput || undefined,
     };
 
     setSessions((prev) => [newSession, ...prev]);
@@ -160,6 +170,45 @@ export default function Home() {
                   border: '1px solid #ddd',
                 }}
               >
+                {selectedQuest.inputConfig && (
+                  <div style={{ marginBottom: '15px' }}>
+                    <div
+                      style={{
+                        fontSize: '14px',
+                        fontWeight: 'bold',
+                        color: '#333',
+                        marginBottom: '5px',
+                      }}
+                    >
+                      {selectedQuest.inputConfig.label}
+                    </div>
+                    {selectedQuest.inputConfig.description && (
+                      <div
+                        style={{
+                          fontSize: '12px',
+                          color: '#666',
+                          marginBottom: '5px',
+                        }}
+                      >
+                        {selectedQuest.inputConfig.description}
+                      </div>
+                    )}
+                    <input
+                      type="text"
+                      value={userInput}
+                      onChange={(e) => setUserInput(e.target.value)}
+                      placeholder={selectedQuest.inputConfig.placeholder}
+                      style={{
+                        width: '100%',
+                        padding: '8px',
+                        borderRadius: '4px',
+                        border: '1px solid #ccc',
+                        fontSize: '14px',
+                      }}
+                    />
+                  </div>
+                )}
+
                 <div
                   style={{
                     fontSize: '12px',
@@ -228,6 +277,8 @@ export default function Home() {
                 questName={session.questName}
                 instructions={session.instructions}
                 onClose={handleCloseSession}
+                hideBrowser={session.hideBrowser}
+                userInput={session.userInput}
               />
             ))}
           </div>
