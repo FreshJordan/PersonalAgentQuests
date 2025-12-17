@@ -1,20 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { QuestStep } from './types';
-
-export interface QuestLog {
-  id: string;
-  questId: string;
-  timestamp: string;
-  durationSeconds: number;
-  status: 'success' | 'failed';
-  steps: QuestStep[];
-  stepCount: number;
-  aiStepCount: number;
-  scriptStepCount: number;
-  context?: Record<string, string>; // Store the dynamic values used
-  summary?: any; // New optional field for extracted data
-}
+import { QuestStep, QuestLog } from './types';
 
 export class QuestLogManager {
   private static getLogDir(): string {

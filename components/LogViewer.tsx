@@ -1,19 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { QuestLog } from '../lib/quests/QuestLogManager';
+import React, { useState } from 'react';
+import { QuestLog } from '../lib/quests/types';
 
-export default function LogViewer() {
-  const [logs, setLogs] = useState<QuestLog[]>([]);
+interface LogViewerProps {
+  logs: QuestLog[];
+  onRefresh: () => void;
+}
+
+export default function LogViewer({ logs, onRefresh }: LogViewerProps) {
   const [selectedLog, setSelectedLog] = useState<QuestLog | null>(null);
-
-  const fetchLogs = () => {
-    fetch('/api/logs')
-      .then((res) => res.json())
-      .then((data) => setLogs(data.logs || []));
-  };
-
-  useEffect(() => {
-    fetchLogs();
-  }, []);
 
   return (
     <div
@@ -37,7 +31,7 @@ export default function LogViewer() {
       >
         <h1 style={{ margin: 0 }}>Quest Log Viewer</h1>
         <button
-          onClick={fetchLogs}
+          onClick={onRefresh}
           style={{
             padding: '8px 16px',
             backgroundColor: '#0969da',

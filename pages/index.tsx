@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { QUESTS } from '../lib/quests/definitions';
 import { ActiveQuest } from '../components/ActiveQuest';
 import LogViewer from '../components/LogViewer';
+import { fetchQuestLogs } from '../lib/questApi';
+import { QuestLog } from '../lib/quests/types';
 
 interface QuestSession {
   sessionId: string;
@@ -20,12 +22,23 @@ export default function Home() {
   const [selectedQuestId, setSelectedQuestId] = useState<string>(QUESTS[0].id);
   const [userInput, setUserInput] = useState<string>('');
   const [sessions, setSessions] = useState<QuestSession[]>([]);
+  const [questLogs, setQuestLogs] = useState<QuestLog[]>([]);
 
   const selectedQuest =
     QUESTS.find((q) => q.id === selectedQuestId) || QUESTS[0];
 
+  const refreshLogs = async () => {
+    const logs = await fetchQuestLogs();
+    setQuestLogs(logs);
+  };
+
+  useEffect(() => {
+    // Initial fetch
+    refreshLogs();
+  }, []);
+
   // Reset user input when quest selection changes
-  React.useEffect(() => {
+  useEffect(() => {
     setUserInput('');
   }, [selectedQuestId]);
 
@@ -83,7 +96,10 @@ export default function Home() {
             Dashboard
           </button>
           <button
-            onClick={() => setCurrentView('logs')}
+            onClick={() => {
+              setCurrentView('logs');
+              refreshLogs();
+            }}
             style={{
               textAlign: 'left',
               padding: '10px',
@@ -291,7 +307,7 @@ export default function Home() {
             height: '100%',
           }}
         >
-          <LogViewer />
+          <LogViewer logs={questLogs} onRefresh={refreshLogs} />
         </div>
       </div>
     </div>

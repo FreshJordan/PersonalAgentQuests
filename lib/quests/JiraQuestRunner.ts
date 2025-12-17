@@ -1,10 +1,16 @@
-import { BedrockRuntimeClient } from '@aws-sdk/client-bedrock-runtime';
+import {
+  BedrockRuntimeClient,
+  InvokeModelCommand,
+} from '@aws-sdk/client-bedrock-runtime';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { AgentEvent } from '../agent/types';
 import { exec, spawn } from 'child_process';
 import util from 'util';
 import path from 'path';
 import fs from 'fs';
+
+import { QuestLogManager } from './QuestLogManager';
+import { QuestLog } from './types';
 
 const execAsync = util.promisify(exec);
 
@@ -48,7 +54,41 @@ export class JiraQuestRunner {
     this.eventCallback({ type: 'log', message: `[JiraRunner] ${message}` });
   }
 
-  private async fetchJiraTickets(filterPrefix?: string): Promise<JiraTicket[]> {
+  private async summarizeComments(comments: string): Promise<string> {
+    const prompt = `
+You are a helpful assistant. Please summarize the following Jira ticket comments into a concise summary of the conversation, highlighting key decisions, blockers, or clarifications.
+Format the output as a bulleted list.
+
+COMMENTS:
+${comments}
+`;
+
+    try {
+      const command = new InvokeModelCommand({
+        modelId: this.modelId,
+        body: JSON.stringify({
+          anthropic_version: 'bedrock-2023-05-31',
+          max_tokens: 1000,
+          messages: [{ role: 'user', content: prompt }],
+        }),
+        contentType: 'application/json',
+        accept: 'application/json',
+      });
+
+      const response = await this.client.send(command);
+      const responseBody = JSON.parse(new TextDecoder().decode(response.body));
+      return responseBody.content[0].text;
+    } catch (e) {
+      this.log(`Failed to summarize comments: ${e}`);
+      return comments; // Fallback to raw comments
+    }
+  }
+
+  private getProjectRoot(): string {
+    return path.resolve(process.cwd(), '..');
+  }
+
+  public async fetchJiraTickets(filterPrefix?: string): Promise<JiraTicket[]> {
     const host = process.env.JIRA_HOST;
     const email = process.env.JIRA_EMAIL;
     const token = process.env.JIRA_API_TOKEN;
@@ -207,6 +247,16 @@ export class JiraQuestRunner {
     }
   }
 
+  private extractTextFromADF(node: any): string {
+    if (node.type === 'text') return node.text || '';
+    if (node.content && Array.isArray(node.content)) {
+      return node.content
+        .map((child: any) => this.extractTextFromADF(child))
+        .join('');
+    }
+    return '';
+  }
+
   public async researchTickets(ticketKeys: string[]) {
     try {
       this.log(`Fetching details for ${ticketKeys.length} tickets...`);
@@ -258,17 +308,8 @@ export class JiraQuestRunner {
               ticket.fields.description.content &&
               Array.isArray(ticket.fields.description.content)
             ) {
-              // Recursively extract text from ADF
-              const extractText = (node: any): string => {
-                if (node.type === 'text') return node.text || '';
-                if (node.content && Array.isArray(node.content)) {
-                  return node.content.map(extractText).join('');
-                }
-                return '';
-              };
-
               descriptionText = ticket.fields.description.content
-                .map((p: any) => extractText(p))
+                .map((p: any) => this.extractTextFromADF(p))
                 .join('\n');
             } else {
               descriptionText = JSON.stringify(ticket.fields.description);
@@ -290,19 +331,39 @@ export class JiraQuestRunner {
           ticket.fields.comment &&
           ticket.fields.comment.comments.length > 0
         ) {
-          commentsText = ticket.fields.comment.comments
+          const rawComments = ticket.fields.comment.comments
             .map((c) => {
               const author = c.author.displayName;
-              const body =
-                typeof c.body === 'string' ? c.body : '(Rich text comment)';
+              let body = '';
+              if (typeof c.body === 'string') {
+                body = c.body;
+              } else if (c.body && typeof c.body === 'object') {
+                // Try parsing ADF
+                try {
+                  if (c.body.content && Array.isArray(c.body.content)) {
+                    body = c.body.content
+                      .map((p: any) => this.extractTextFromADF(p))
+                      .join('\n');
+                  } else {
+                    body = JSON.stringify(c.body);
+                  }
+                } catch (e) {
+                  body = '(Error parsing rich text comment)';
+                }
+              } else {
+                body = '(Unknown comment format)';
+              }
               return `[${author}]: ${body}`;
             })
             .join('\n\n');
+
+          this.log('Summarizing comments with AI...');
+          commentsText = await this.summarizeComments(rawComments);
         }
 
         finalReport += `## [${ticket.key}] ${ticket.fields.summary}\n\n`;
         finalReport += `### Description\n${descriptionText}\n\n`;
-        finalReport += `### Comments\n${commentsText}\n\n`;
+        finalReport += `### Comments Summary\n${commentsText}\n\n`;
 
         finalReport += `\n---\n\n`;
 
@@ -313,6 +374,19 @@ export class JiraQuestRunner {
 
         // --- NEW: Trigger Cursor CLI ---
         try {
+          // Checkout Branch
+          const branchName = `feature/${ticket.key}`;
+          const rootDir = this.getProjectRoot();
+          this.log(`Checking out git branch: ${branchName}`);
+
+          try {
+            await execAsync(`git checkout -b ${branchName}`, { cwd: rootDir });
+          } catch (e) {
+            // If branch exists, just checkout
+            this.log(`Branch might exist, switching to ${branchName}...`);
+            await execAsync(`git checkout ${branchName}`, { cwd: rootDir });
+          }
+
           const instructions = `
 # PRIMARY OBJECTIVE: ${ticket.key} - ${ticket.fields.summary}
 
@@ -322,7 +396,7 @@ Pay special attention to any acceptance criteria (A/C), specific file paths, or 
 
 ${descriptionText}
 
-## ADDITIONAL CONTEXT (Comments)
+## ADDITIONAL CONTEXT (Comments Summary)
 ${commentsText}
 
 ## EXECUTION PLAN
@@ -343,7 +417,8 @@ You are an expert engineer tasked with completing the above objective. Your prio
    - **Deprecations**: Ensure you haven't introduced usage of deprecated components unless explicitly required by the ticket.
 
 4. **Finalize**:
-   - Do NOT commit changes.
+   - Create a git commit with the changes using the message: "[Cursor_Code] Implementation for ${ticket.key}"
+   - **VERY IMPORTANT**: Do NOT push changes to origin. All changes must remain local.
    - Leave the codebase in a clean, working state with your changes applied.
 `;
           const instructionFile = `INSTRUCTIONS_${ticket.key}.md`;
@@ -414,6 +489,7 @@ You are an expert engineer tasked with completing the above objective. Your prio
 
             let stdoutBuffer = '';
             let textBuffer = '';
+            let agentFullOutput = '';
             let hasReceivedData = false;
 
             child.on('spawn', () => {
@@ -453,6 +529,7 @@ You are an expert engineer tasked with completing the above objective. Your prio
                       for (const item of contentList) {
                         if (item.type === 'text' && item.text) {
                           textBuffer += item.text;
+                          agentFullOutput += item.text;
                         }
                       }
                     }
@@ -513,7 +590,7 @@ You are an expert engineer tasked with completing the above objective. Your prio
               }
             });
 
-            child.on('close', (code) => {
+            child.on('close', async (code) => {
               // Flush remaining text
               if (textBuffer) {
                 this.log(`[Agent] ${textBuffer}`);
@@ -521,6 +598,45 @@ You are an expert engineer tasked with completing the above objective. Your prio
 
               if (code === 0) {
                 this.log('Cursor Agent completed successfully.');
+
+                if (agentFullOutput) {
+                  finalReport += `\n### Cursor Agent Output Summary\n${agentFullOutput.trim()}\n`;
+                }
+
+                // Get summary of changes
+                try {
+                  const { stdout: diffStat } = await execAsync(
+                    'git show --stat --oneline --no-color',
+                    { cwd: spawnCwd }
+                  );
+                  if (diffStat) {
+                    finalReport += `\n### Cursor Agent Changes\n\`\`\`\n${diffStat.trim()}\n\`\`\`\n`;
+                  } else {
+                    finalReport += `\n### Cursor Agent Changes\nNo changes detected or commit failed.\n`;
+                  }
+                } catch (e) {
+                  this.log(`Failed to get git summary: ${e}`);
+                  finalReport += `\n### Cursor Agent Changes\n(Could not retrieve git summary)\n`;
+                }
+
+                // Log mission completion
+                const questLog: QuestLog = {
+                  id: `log-${Date.now()}`,
+                  questId: 'jira-ticket-research',
+                  timestamp: new Date().toISOString(),
+                  durationSeconds: 0, // Not tracked precisely here yet
+                  status: 'success',
+                  steps: [], // No steps for this type of quest
+                  stepCount: 0,
+                  aiStepCount: 0,
+                  scriptStepCount: 0,
+                  summary: {
+                    report: finalReport,
+                    tickets: ticketKeys,
+                  },
+                };
+                QuestLogManager.saveLog(questLog);
+
                 resolve();
               } else {
                 const errorMsg = `Cursor agent exited with code ${code}`;

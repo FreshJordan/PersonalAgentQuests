@@ -30,7 +30,7 @@ export const ActiveQuest: React.FC<ActiveQuestProps> = ({
   hideBrowser,
   userInput,
 }) => {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true);
   const [loading, setLoading] = useState(true);
   const [response, setResponse] = useState<string | null>(null);
   const [screenshot, setScreenshot] = useState<string | null>(null);
@@ -85,6 +85,13 @@ export const ActiveQuest: React.FC<ActiveQuestProps> = ({
       }
     }
   }, [logs, autoScroll]);
+
+  // Auto-expand if script starts
+  useEffect(() => {
+    if (status === 'in_progress_ai') {
+      setIsCollapsed(false);
+    }
+  }, [status]);
 
   const handleTicketToggle = (key: string) => {
     setSelectedTickets([key]); // Single select
@@ -282,7 +289,12 @@ export const ActiveQuest: React.FC<ActiveQuestProps> = ({
                     setStatus('failed');
                   } else if (data.type === 'done') {
                     setLoading(false);
-                    if (currentStatus === 'ai_takeover') {
+                    // For Jira research, we mark as success only when CLI is done,
+                    // which is when the 'done' event is sent AFTER CLI finishes.
+                    // The server ensures 'done' is sent at the very end.
+                    if (questId === 'jira-ticket-research') {
+                      setStatus('success_ai');
+                    } else if (currentStatus === 'ai_takeover') {
                       setStatus('success_takeover');
                     } else if (currentStatus === 'in_progress_ai') {
                       setStatus('success_ai');
@@ -372,48 +384,90 @@ export const ActiveQuest: React.FC<ActiveQuestProps> = ({
         }}
         onClick={() => setIsCollapsed(!isCollapsed)}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <span
-            style={{
-              transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)',
-              transition: 'transform 0.2s',
-              fontSize: '12px',
-              display: 'flex',
-              alignItems: 'center',
-            }}
-          >
-            ▼
-          </span>
-          <h3 style={{ margin: 0, fontSize: '16px', lineHeight: '1.2' }}>
-            {dynamicQuestName}
-          </h3>
-          <span style={{ fontSize: '12px', color: '#666', lineHeight: '1' }}>
-            ({sessionId})
-          </span>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '16px',
+            flex: 1,
+          }}
+        >
+          {/* Arrow */}
           <div
             style={{
-              marginLeft: '12px',
-              fontSize: '14px',
-              fontWeight: 'bold',
+              width: '16px',
+              height: '16px',
               display: 'flex',
               alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <span
+              style={{
+                transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)',
+                transition: 'transform 0.2s',
+                fontSize: '10px', // Slightly smaller arrow
+              }}
+            >
+              ▼
+            </span>
+          </div>
+
+          {/* Title Group */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div
+              style={{
+                margin: 0,
+                fontSize: '15px',
+                fontWeight: '600',
+                lineHeight: '1',
+                color: '#24292f',
+              }}
+            >
+              {dynamicQuestName}
+            </div>
+            <div
+              style={{
+                fontSize: '12px',
+                color: '#57606a',
+                lineHeight: '1',
+                paddingTop: '2px', // Micro-adjustment for visual alignment
+              }}
+            >
+              ({sessionId})
+            </div>
+          </div>
+
+          {/* Status Badge */}
+          <div
+            style={{
+              fontSize: '13px',
+              fontWeight: '600',
+              display: 'flex',
+              alignItems: 'center',
+              height: '20px', // Fixed height container
             }}
           >
             {getStatusBadge()}
           </div>
-          <span
+
+          {/* Timer */}
+          <div
             style={{
               fontSize: '12px',
-              color: '#666',
-              marginLeft: '12px',
-              fontFamily: 'monospace',
+              color: '#57606a',
+              fontFamily:
+                'ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace',
               display: 'flex',
               alignItems: 'center',
+              gap: '6px',
             }}
           >
-            ⏱ {elapsedTime}
-          </span>
+            <span>⏱</span>
+            <span>{elapsedTime}</span>
+          </div>
         </div>
+
         <button
           onClick={(e) => {
             e.stopPropagation();
@@ -427,6 +481,8 @@ export const ActiveQuest: React.FC<ActiveQuestProps> = ({
             borderRadius: '4px',
             cursor: 'pointer',
             fontSize: '12px',
+            marginLeft: '16px',
+            lineHeight: '1.5',
           }}
         >
           End Mission

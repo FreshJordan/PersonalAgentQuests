@@ -29,4 +29,18 @@ export interface QuestScript {
   successCriteria?: StepValidation[]; // Global validation to verify the quest actually finished
 }
 
+export interface QuestLog {
+  id: string;
+  questId: string;
+  timestamp: string;
+  durationSeconds: number;
+  status: 'success' | 'failed';
+  steps: QuestStep[];
+  stepCount: number;
+  aiStepCount: number;
+  scriptStepCount: number;
+  context?: Record<string, string>; // Store the dynamic values used
+  summary?: any; // New optional field for extracted data
+}
+
 export const FACTOR75_LOGIN_QUEST_ID = 'factor75-login';
