@@ -1,91 +1,95 @@
-// Tool definitions for the LLM
+// Tool definitions for the LLM (descriptions kept concise to reduce token usage)
 export const BROWSER_TOOLS = [
   {
     name: 'navigate',
-    description: 'Navigate the browser to a specific URL',
+    description: 'Go to a URL',
     input_schema: {
       type: 'object',
       properties: {
-        url: {
-          type: 'string',
-          description: 'The URL to navigate to (e.g., https://www.google.com)',
-        },
+        url: { type: 'string', description: 'Full URL' },
       },
       required: ['url'],
     },
   },
   {
     name: 'type_text',
-    description: 'Type text into an input field',
+    description:
+      'Type text. If selector omitted, types into currently focused element.',
     input_schema: {
       type: 'object',
       properties: {
         selector: {
           type: 'string',
-          description:
-            "CSS selector for the input element (e.g., 'textarea[name=q]')",
+          description: 'CSS selector (optional if element already focused)',
         },
-        iframe_selector: {
-          type: 'string',
-          description:
-            'Optional: CSS selector for the iframe containing the element (e.g., \'iframe[title="secure-payment"]\')',
-        },
-        text: {
-          type: 'string',
-          description: 'The text to type',
-        },
+        text: { type: 'string', description: 'Text to type' },
       },
-      required: ['selector', 'text'],
+      required: ['text'],
+    },
+  },
+  {
+    name: 'click_at_coordinates',
+    description: 'PREFERRED: Click at x,y coordinates (viewport: 1024x768)',
+    input_schema: {
+      type: 'object',
+      properties: {
+        x: { type: 'number', description: 'X coord (0-1024)' },
+        y: { type: 'number', description: 'Y coord (0-768)' },
+        description: { type: 'string', description: 'What you are clicking' },
+      },
+      required: ['x', 'y', 'description'],
     },
   },
   {
     name: 'click',
-    description: 'Click an element on the page',
+    description:
+      'FALLBACK: Click via CSS selector (use only if coordinates fail)',
     input_schema: {
       type: 'object',
       properties: {
-        selector: {
-          type: 'string',
-          description: 'CSS selector for the element to click',
-        },
-        iframe_selector: {
-          type: 'string',
-          description:
-            'Optional: CSS selector for the iframe containing the element',
-        },
+        selector: { type: 'string', description: 'CSS selector' },
       },
       required: ['selector'],
     },
   },
   {
-    name: 'press_key',
-    description: 'Press a specific key (like Enter)',
+    name: 'scroll',
+    description: 'Scroll the page (default: half viewport = 384px)',
     input_schema: {
       type: 'object',
       properties: {
-        key: {
+        direction: {
           type: 'string',
-          description: "Key to press (e.g., 'Enter')",
+          enum: ['up', 'down'],
+          description: 'Scroll direction',
         },
+        amount: {
+          type: 'number',
+          description: 'Pixels to scroll (default: 384 = half viewport)',
+        },
+      },
+      required: ['direction'],
+    },
+  },
+  {
+    name: 'press_key',
+    description: 'Press a key (Enter, Tab, etc.)',
+    input_schema: {
+      type: 'object',
+      properties: {
+        key: { type: 'string', description: 'Key name' },
       },
       required: ['key'],
     },
   },
   {
     name: 'random_wait',
-    description:
-      'Wait for a random amount of time (useful for simulating human behavior)',
+    description: 'Wait randomly between min-max ms',
     input_schema: {
       type: 'object',
       properties: {
-        min: {
-          type: 'number',
-          description: 'Minimum wait time in milliseconds (default: 500)',
-        },
-        max: {
-          type: 'number',
-          description: 'Maximum wait time in milliseconds (default: 2000)',
-        },
+        min: { type: 'number', description: 'Min ms (default: 500)' },
+        max: { type: 'number', description: 'Max ms (default: 2000)' },
       },
       required: [],
     },

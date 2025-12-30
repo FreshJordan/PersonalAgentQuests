@@ -173,7 +173,9 @@ export const Header: React.FC<HeaderProps> = ({
             }}
           >
             <span title="Input Tokens">⬇️ {inputTokens.toLocaleString()}</span>
-            <span title="Output Tokens">⬆️ {outputTokens.toLocaleString()}</span>
+            <span title="Output Tokens">
+              ⬆️ {outputTokens.toLocaleString()}
+            </span>
           </div>
         )}
       </div>

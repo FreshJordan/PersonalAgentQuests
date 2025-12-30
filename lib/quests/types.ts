@@ -4,11 +4,23 @@ export interface StepValidation {
   timeout?: number; // ms to wait for this condition
 }
 
+// Type of change expected after a click action (recorded during AI execution)
+export type ClickChangeType = 'url' | 'dom' | 'none';
+
+// Element info captured at click coordinates (for verifying correct target during replay)
+export interface ClickTargetElement {
+  tag: string; // e.g., 'button', 'a', 'div'
+  text: string; // Visible text content (truncated)
+  identifier: string; // e.g., 'button#submit.primary'
+}
+
 export interface QuestStep {
   type:
     | 'navigate'
     | 'click'
+    | 'click_at_coordinates'
     | 'type_text'
+    | 'scroll'
     | 'press_key'
     | 'wait'
     | 'random_wait';
@@ -17,6 +29,8 @@ export interface QuestStep {
   timestamp?: string; // When this step was executed/recorded
   status?: 'success' | 'failed'; // Status of the step execution
   validation?: StepValidation; // Optional validation to verify this specific step worked
+  expectedChange?: ClickChangeType; // What change occurred when AI executed this click (for replay validation)
+  expectedElement?: ClickTargetElement; // Element that was at click coordinates during AI execution
 }
 
 export interface QuestScript {

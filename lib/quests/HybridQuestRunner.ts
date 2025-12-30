@@ -1,13 +1,31 @@
 import { BROWSER_TOOLS, AgentEvent } from '../agent/types';
 import { ScriptManager } from './ScriptManager';
-import { QuestStep, QuestLog } from './types';
+import {
+  QuestStep,
+  QuestLog,
+  ClickChangeType,
+  ClickTargetElement,
+} from './types';
 import { KnowledgeBase } from './KnowledgeBase';
 import { QuestLogManager } from './QuestLogManager';
-import { QUESTS } from './definitions';
+import {
+  CONTEXT_TRIMMED_MESSAGE,
+  SCRIPT_FAILED_CONTEXT,
+  SCRIPT_RETRY_CONTEXT,
+  QA_REVIEW_PROMPT,
+  SELECTOR_HINTS_NOTE,
+  FAILED_SELECTORS_NOTE,
+  BROWSER_AGENT_SYSTEM_PROMPT,
+} from './prompts';
 import { BedrockService } from '../services/bedrock';
 import { BrowserService } from '../services/browser';
 import { ValidationService } from '../services/validation';
 import { ContextService } from '../services/context';
+
+// Sliding window size for message history (keeps system prompt + last N messages)
+// Trade-off: Higher = more context for AI, but more tokens. Lower = faster/cheaper, but less context.
+// 10 messages ≈ 5 AI turns (each turn = assistant + user tool_result)
+const MESSAGE_HISTORY_WINDOW = 10;
 
 export class HybridQuestRunner {
   private bedrockService: BedrockService;
@@ -17,6 +35,7 @@ export class HybridQuestRunner {
   private eventCallback: (event: AgentEvent) => void;
   private maxSteps: number;
   private recordedSteps: QuestStep[] = [];
+  private scriptStepsExecuted = 0; // Track how many steps came from script replay
   private startTime = 0;
   private modelId: string;
 
@@ -32,6 +51,86 @@ export class HybridQuestRunner {
 
   private log(message: string) {
     this.eventCallback({ type: 'log', message: `[Runner] ${message}` });
+  }
+
+  /**
+   * Determines if a tool is expected to visually change the page.
+   * Used to decide whether to include a screenshot in the tool result.
+   */
+  private toolChangesPage(toolName: string): boolean {
+    // Tools that typically change the visible page state
+    const pageChangingTools = [
+      'navigate',
+      'click',
+      'click_at_coordinates',
+      'type_text',
+      'scroll',
+      'press_key', // Could scroll or submit forms
+    ];
+    return pageChangingTools.includes(toolName);
+  }
+
+  /**
+   * Trims message history to keep only the system prompt (first message) + last N messages.
+   * Creates a summary of trimmed messages to maintain context.
+   *
+   * IMPORTANT: Must preserve tool_use/tool_result pairs - the API requires every tool_result
+   * to have a corresponding tool_use in the immediately preceding assistant message.
+   */
+  private trimMessageHistory(messages: any[]): any[] {
+    if (messages.length <= MESSAGE_HISTORY_WINDOW + 1) {
+      return messages; // No trimming needed (+1 for system prompt)
+    }
+
+    const systemPrompt = messages[0]; // Always keep the system prompt
+
+    // Calculate where to start keeping messages
+    // We need to keep messages in pairs (assistant + user with tool_result)
+    // to avoid breaking the tool_use/tool_result relationship
+    let keepFromIndex = messages.length - MESSAGE_HISTORY_WINDOW;
+
+    // Ensure we start from an assistant message (not a user tool_result)
+    // to maintain valid message structure
+    while (keepFromIndex > 1 && keepFromIndex < messages.length) {
+      const msg = messages[keepFromIndex];
+      // If this is a user message with tool_results, we need to also keep the previous assistant message
+      if (msg.role === 'user' && Array.isArray(msg.content)) {
+        const hasToolResult = msg.content.some(
+          (c: any) => c.type === 'tool_result'
+        );
+        if (hasToolResult) {
+          // Move back to include the assistant message with the corresponding tool_use
+          keepFromIndex--;
+          continue;
+        }
+      }
+      break;
+    }
+
+    // Ensure keepFromIndex doesn't go below 1 (we always keep system prompt at 0)
+    keepFromIndex = Math.max(1, keepFromIndex);
+
+    const recentMessages = messages.slice(keepFromIndex);
+
+    // Count how many messages we're trimming
+    const trimmedCount = keepFromIndex - 1;
+
+    if (trimmedCount <= 0) {
+      return messages; // Nothing to trim
+    }
+
+    // Create a summary message for the trimmed history
+    const summaryMessage = {
+      role: 'user',
+      content: [
+        {
+          type: 'text',
+          text: CONTEXT_TRIMMED_MESSAGE(trimmedCount),
+        },
+      ],
+    };
+
+    return [systemPrompt, summaryMessage, ...recentMessages];
   }
 
   private async captureScreenshot(): Promise<string | null> {
@@ -50,18 +149,165 @@ export class HybridQuestRunner {
     }
   }
 
+  /**
+   * Detects what type of change occurred after an action.
+   * Returns 'url' if URL changed, 'dom' if DOM changed, 'none' otherwise.
+   */
+  private async detectChangeType(
+    preUrl: string,
+    preFingerprint: string
+  ): Promise<ClickChangeType> {
+    const page = this.browserService.page;
+    if (!page) return 'none';
+
+    // Check URL first (most significant change)
+    if (page.url() !== preUrl) {
+      return 'url';
+    }
+
+    // Check DOM change via fingerprint
+    const domChanged = await this.browserService.waitForFingerprintChange(
+      preFingerprint,
+      3000
+    );
+    if (domChanged) {
+      return 'dom';
+    }
+
+    return 'none';
+  }
+
+  /**
+   * Validates a click during SCRIPT REPLAY only.
+   * Verifies the correct element is at coordinates before clicking.
+   * Checks if the expected change type matches what actually happened.
+   * Throws an error if validation fails after retry, triggering AI handoff.
+   */
+  private async executeScriptClick(
+    clickFn: () => Promise<void>,
+    description: string,
+    expectedChange?: ClickChangeType,
+    expectedElement?: ClickTargetElement,
+    coordinates?: { x: number; y: number }
+  ): Promise<void> {
+    const page = this.browserService.page;
+    if (!page) throw new Error('No browser page');
+
+    // Wait for page to be ready before clicking (ignore timeout)
+    await page
+      .waitForLoadState('networkidle', { timeout: 5000 })
+      .catch(() => undefined);
+
+    // ELEMENT VERIFICATION: Check if the expected element is at the coordinates
+    if (expectedElement && coordinates) {
+      const verification = await this.browserService.verifyElementAtCoordinates(
+        coordinates.x,
+        coordinates.y,
+        expectedElement
+      );
+
+      if (!verification.matches) {
+        // Wrong element at coordinates - likely a popup or layout change
+        throw new Error(
+          `Element mismatch at (${coordinates.x}, ${coordinates.y}): ` +
+            `Expected ${verification.expected}, but found ${verification.actual}. ` +
+            `A popup or layout change may be blocking the target.`
+        );
+      }
+
+      this.log(`  Verified: ${verification.actual}`);
+    }
+
+    // Capture pre-click state
+    const preFingerprint =
+      await this.browserService.getAccessibilityFingerprint();
+    const preUrl = page.url();
+
+    // Execute the click
+    await clickFn();
+
+    // Detect what changed
+    let actualChange = await this.detectChangeType(preUrl, preFingerprint);
+
+    // Only strictly validate URL changes - DOM changes are timing-sensitive
+    // and can vary between runs due to loading states, focus timing, etc.
+    if (expectedChange === 'url' && actualChange !== 'url') {
+      this.log(`  Retrying click (expected URL change)`);
+
+      // Wait a bit and retry
+      await page.waitForTimeout(1000);
+      const retryPreUrl = page.url();
+
+      await clickFn();
+
+      // Only check if URL changed (ignore DOM fingerprint for retry)
+      await page.waitForTimeout(2000); // Give time for navigation
+      if (page.url() === retryPreUrl) {
+        // Still no URL change after retry - throw error to trigger AI handoff
+        throw new Error(
+          `Click validation failed: Expected URL change but page did not navigate after retry.`
+        );
+      }
+      actualChange = 'url';
+    }
+
+    // Log result only if there's something notable
+    // Suppress verbose validation logs - only warn on significant issues
+    if (expectedChange === 'url' && actualChange !== 'url') {
+      // This case is handled above with retry and error
+    } else if (expectedChange === 'dom' && actualChange === 'none') {
+      // Timing variance - don't log, it's usually fine
+    }
+    // All other cases: proceed silently
+  }
+
+  /**
+   * Generates a concise, human-readable description for a step/action.
+   */
+  private getStepDescription(
+    type: string,
+    params: Record<string, any>
+  ): string {
+    switch (type) {
+      case 'navigate':
+        return params.url || 'unknown URL';
+      case 'click_at_coordinates':
+        return params.description || `(${params.x}, ${params.y})`;
+      case 'click':
+        if (params.selector?.includes('text=')) {
+          return `"${params.selector.replace('text=', '')}"`;
+        }
+        if (params.selector?.includes('has-text')) {
+          const match = params.selector.match(/has-text\('(.+?)'\)/);
+          return match ? `"${match[1]}"` : params.selector;
+        }
+        return params.selector || 'unknown selector';
+      case 'type_text':
+        const text =
+          params.text?.length > 30
+            ? `${params.text.slice(0, 30)}...`
+            : params.text;
+        return params.selector
+          ? `"${text}" into ${params.selector}`
+          : `"${text}"`;
+      case 'scroll':
+        return `${params.direction} ${params.amount || 384}px`;
+      case 'press_key':
+        return params.key || 'unknown key';
+      case 'random_wait':
+      case 'wait':
+        return `${params.duration || params.min || 500}ms`;
+      default:
+        return JSON.stringify(params).slice(0, 50);
+    }
+  }
+
   private getSelectorHints(url: string): string {
     const selectors = KnowledgeBase.getProvenSelectors(url);
     if (selectors.length === 0) {
       return '';
     }
-
-    return `
-    HISTORICAL KNOWLEDGE:
-    The following selectors have successfully worked on this page in the past.
-    Prefer them if they seem relevant to your current goal:
-    ${selectors.map((s) => `- ${s}`).join('\n')}
-    `;
+    return SELECTOR_HINTS_NOTE(selectors);
   }
 
   private async executeStep(step: QuestStep, retry = true): Promise<boolean> {
@@ -71,9 +317,9 @@ export class HybridQuestRunner {
 
     const finalParams = this.contextService.applySubstitutions(step.params);
 
-    this.log(
-      `Executing cached step: ${step.type} ${JSON.stringify(finalParams)}`
-    );
+    // Log step execution with clean format
+    const stepDesc = this.getStepDescription(step.type, finalParams);
+    this.log(`[Script]: ${step.type} - ${stepDesc}`);
 
     try {
       const page = this.browserService.page;
@@ -84,11 +330,9 @@ export class HybridQuestRunner {
           timeout: 30000,
         });
       } else if (step.type === 'type_text') {
-        if (finalParams.iframe_selector) {
-          const frame = page.frameLocator(finalParams.iframe_selector);
-          const locator = frame.locator(finalParams.selector);
-          await locator.waitFor({ state: 'visible', timeout: 5000 });
-          await locator.fill(finalParams.text);
+        if (!finalParams.selector) {
+          // No selector - type into currently focused element
+          await page.keyboard.type(finalParams.text);
         } else {
           await page.waitForSelector(finalParams.selector, {
             state: 'visible',
@@ -96,19 +340,28 @@ export class HybridQuestRunner {
           });
           await page.fill(finalParams.selector, finalParams.text);
         }
+      } else if (step.type === 'click_at_coordinates') {
+        await this.executeScriptClick(
+          () => page.mouse.click(finalParams.x, finalParams.y),
+          `coordinates (${finalParams.x}, ${finalParams.y})`,
+          step.expectedChange,
+          step.expectedElement,
+          { x: finalParams.x, y: finalParams.y }
+        );
       } else if (step.type === 'click') {
-        if (finalParams.iframe_selector) {
-          const frame = page.frameLocator(finalParams.iframe_selector);
-          const locator = frame.locator(finalParams.selector);
-          await locator.waitFor({ state: 'visible', timeout: 5000 });
-          await locator.click();
-        } else {
-          await page.waitForSelector(finalParams.selector, {
-            state: 'visible',
-            timeout: 5000,
-          });
-          await page.click(finalParams.selector);
-        }
+        await page.waitForSelector(finalParams.selector, {
+          state: 'visible',
+          timeout: 5000,
+        });
+        await this.executeScriptClick(
+          () => page.click(finalParams.selector),
+          `selector ${finalParams.selector}`,
+          step.expectedChange
+        );
+      } else if (step.type === 'scroll') {
+        const amount = finalParams.amount || 384;
+        const deltaY = finalParams.direction === 'up' ? -amount : amount;
+        await page.mouse.wheel(0, deltaY);
       } else if (step.type === 'press_key') {
         await page.keyboard.press(finalParams.key);
       } else if (step.type === 'wait' || step.type === 'random_wait') {
@@ -116,7 +369,7 @@ export class HybridQuestRunner {
         await page.waitForTimeout(duration);
       }
 
-      await page.waitForTimeout(1000);
+      await page.waitForTimeout(2000);
       const newUrl = page.url();
       this.eventCallback({ type: 'url_update', url: newUrl });
       await this.captureScreenshot();
@@ -150,10 +403,9 @@ export class HybridQuestRunner {
     extractedData?: any
   ) {
     const durationSeconds = Math.round((Date.now() - this.startTime) / 1000);
-    const aiSteps = this.recordedSteps.filter((s) =>
-      s.description?.startsWith('AI Action')
-    ).length;
-    const scriptSteps = this.recordedSteps.length - aiSteps;
+    // Use tracked script steps count instead of description-based filtering
+    const scriptSteps = this.scriptStepsExecuted;
+    const aiSteps = this.recordedSteps.length - scriptSteps;
 
     const log: QuestLog = {
       id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -210,6 +462,7 @@ export class HybridQuestRunner {
             break;
           }
           this.recordedSteps.push(existingScript.steps[i]);
+          this.scriptStepsExecuted++; // Track script-executed steps
         }
 
         if (
@@ -234,7 +487,7 @@ export class HybridQuestRunner {
 
         if (scriptFailedIndex === -1) {
           this.log('Script execution finished. Performing AI verification...');
-          const review = await this.performAIReview(questId, questDescription);
+          const review = await this.performAIReview(questDescription);
 
           if (!review.success) {
             this.log(`Script finished but AI review failed: ${review.reason}`);
@@ -274,25 +527,16 @@ export class HybridQuestRunner {
       await this.runAI(
         questDescription,
         scriptFailedIndex !== -1
-          ? `CRITICAL: The previous script failed at step ${
-              scriptFailedIndex + 1
-            }.
-             We are currently in the middle of the quest.
-
-             HISTORY OF EXECUTED STEPS:
-             ${stepHistory}
-
-             YOUR TASK:
-             Resume the quest from the current state. Do NOT restart the quest.
-             Analyze the current page state (screenshot) and determine the next logical step to proceed towards the goal.
-             The last successful action was: ${
-               lastStep?.description || 'None'
-             }.`
+          ? SCRIPT_FAILED_CONTEXT(
+              scriptFailedIndex + 1,
+              stepHistory,
+              lastStep?.description || 'None'
+            )
           : undefined
       );
 
       this.log('Requesting final AI review of mission status...');
-      let reviewResult = await this.performAIReview(questId, questDescription);
+      let reviewResult = await this.performAIReview(questDescription);
 
       if (!reviewResult.success) {
         this.log(
@@ -310,19 +554,14 @@ export class HybridQuestRunner {
 
         await this.runAI(
           questDescription,
-          `CRITICAL: The previous execution was deemed unsuccessful by the QA Agent.
-             REASON: ${reviewResult.reason}
-
-             HISTORY OF EXECUTED STEPS:
-             ${stepHistoryRetry}
-
-             YOUR TASK:
-             Fix the issue and complete the quest. Verify the state before stopping.
-             You are continuing from the current state shown in the screenshot.`
+          SCRIPT_RETRY_CONTEXT(
+            reviewResult.reason || 'Unknown',
+            stepHistoryRetry
+          )
         );
 
         this.log('Requesting second AI review after fix attempt...');
-        reviewResult = await this.performAIReview(questId, questDescription);
+        reviewResult = await this.performAIReview(questDescription);
       }
 
       if (reviewResult.success) {
@@ -380,7 +619,6 @@ export class HybridQuestRunner {
   }
 
   private async performAIReview(
-    questId: string,
     questDescription: string
   ): Promise<{ success: boolean; reason?: string; extractedData?: any }> {
     if (!this.browserService.page) {
@@ -392,13 +630,14 @@ export class HybridQuestRunner {
       return { success: false, reason: 'Failed to capture screenshot' };
     }
 
-    const questDef = QUESTS.find((q) => q.id === questId);
-    const expectedOutput = questDef?.expectedOutput || [];
-
     const stepContext = this.recordedSteps
       .map((s) => {
-        if (s.type === 'type_text') return `Typed: "${s.params.text}"`;
-        if (s.type === 'click') return `Clicked: "${s.description}"`;
+        if (s.type === 'type_text') {
+          return `Typed: "${s.params.text}"`;
+        }
+        if (s.type === 'click') {
+          return `Clicked: "${s.description}"`;
+        }
         return null;
       })
       .filter(Boolean)
@@ -410,28 +649,7 @@ export class HybridQuestRunner {
         content: [
           {
             type: 'text',
-            text: `You are a QA and Data Extraction agent.
-
-            GOAL: "${questDescription}"
-
-            1. VERIFICATION:
-            Look at the screenshot. Has the goal been FULLY accomplished?
-            - If it's a signup flow, are we on a "Welcome" or "Success" page?
-            - If there are error messages, validation errors, or we are still on a form, it is NOT successful.
-
-            2. DATA EXTRACTION:
-            Extract the following fields based on the execution history and the final screen:
-            ${JSON.stringify(expectedOutput, null, 2)}
-
-            EXECUTION HISTORY:
-            ${stepContext}
-
-            Respond with ONLY a JSON object:
-            {
-              "success": boolean,
-              "reason": "short explanation of why",
-              "data": { ...extracted fields... }
-            }`,
+            text: QA_REVIEW_PROMPT(questDescription, stepContext),
           },
           {
             type: 'image',
@@ -482,6 +700,7 @@ export class HybridQuestRunner {
     if (!this.browserService.page) return;
 
     let failedSelectors: string[] = [];
+    let lastUrl = this.browserService.page.url();
     const contextData = this.contextService.getContext();
 
     const messages: any[] = [
@@ -490,37 +709,11 @@ export class HybridQuestRunner {
         content: [
           {
             type: 'text',
-            text: `You are a browser automation agent.
-            Your goal is to fulfill this request: "${questDescription}"
-            ${context ? `CONTEXT: ${context}` : ''}
-
-            DATA RULES:
-            1. If you need to sign up with a NEW email, use this one: ${
+            text: BROWSER_AGENT_SYSTEM_PROMPT(
+              questDescription,
+              context,
               contextData.dynamicEmail
-            }
-            2. If you need a credit card, use:
-               - Number: 4111 1111 1111 1111
-               - Expiry: 03/30
-               - CVC: 737
-               - Name: Jordan McInnis
-               - Zip: 90210 (or any valid US zip)
-
-            GUIDELINES:
-            1. Use the available tools.
-            2. Handle captchas if seen.
-            3. Log your actions.
-            4. When filling out forms, prefer using the 'press_key' tool with 'Tab' to navigate between fields after focusing the first field.
-            5. IFRAMES:
-               - The credit card fields (Number, Expiry, CVC) are inside iframes.
-               - You MUST use the 'iframe_selector' parameter when interacting with these.
-               - Look for iframes with titles like 'Secure Credit Card Frame...'.
-            6. SELECTOR STRATEGIES (IMPORTANT):
-               - Highest preference to the following exceptions: elements with "downshift"
-               - Prefer text-based selectors for buttons and links: "text=Sign Up" or "button:has-text('Continue')".
-               - Use stable attributes if available: "[data-testid='submit']", "id='email'", or "name='password'".
-               - Avoid brittle selectors based on long chains (div > div > span) or dynamic classes.
-               - For complex elements, use ":has(...)" to target a parent based on child content.
-            `,
+            ),
           },
         ],
       },
@@ -549,6 +742,12 @@ export class HybridQuestRunner {
       }
 
       const currentUrl = this.browserService.page.url();
+
+      if (currentUrl !== lastUrl) {
+        failedSelectors = [];
+        lastUrl = currentUrl;
+      }
+
       const hints = this.getSelectorHints(currentUrl);
 
       if (hints) {
@@ -558,11 +757,27 @@ export class HybridQuestRunner {
         });
       }
 
+      if (failedSelectors.length > 0) {
+        const uniqueFailed = Array.from(new Set(failedSelectors));
+        messages.push({
+          role: 'user',
+          content: [
+            {
+              type: 'text',
+              text: FAILED_SELECTORS_NOTE(uniqueFailed),
+            },
+          ],
+        });
+      }
+
       this.log(`AI Step ${i + 1}: Thinking...`);
+
+      // Apply sliding window to reduce token usage
+      const trimmedMessages = this.trimMessageHistory(messages);
 
       const { content: responseContent, usage } =
         await this.bedrockService.invokeModel(
-          messages,
+          trimmedMessages,
           this.modelId,
           3000,
           BROWSER_TOOLS
@@ -605,22 +820,31 @@ export class HybridQuestRunner {
         const toolName = toolUse.name;
         const toolInput = toolUse.input;
 
-        this.log(`AI Executing: ${toolName} ${JSON.stringify(toolInput)}`);
+        // Log action with clean format
+        const actionDesc = this.getStepDescription(toolName, toolInput);
+        this.log(`[AI]: ${toolName} - ${actionDesc}`);
 
         let resultText = 'Success';
 
         try {
+          if (
+            (toolName === 'click' || toolName === 'type_text') &&
+            failedSelectors.includes(toolInput.selector)
+          ) {
+            throw new Error(
+              `You have already tried selector "${toolInput.selector}" on this page and it failed. Do not use it again. Pick a different selector.`
+            );
+          }
+
           if (toolName === 'navigate') {
             await page.goto(toolInput.url, {
               waitUntil: 'domcontentloaded',
               timeout: 30000,
             });
           } else if (toolName === 'type_text') {
-            if (toolInput.iframe_selector) {
-              const frame = page.frameLocator(toolInput.iframe_selector);
-              const locator = frame.locator(toolInput.selector);
-              await locator.waitFor({ state: 'visible', timeout: 5000 });
-              await locator.fill(toolInput.text);
+            if (!toolInput.selector) {
+              // No selector provided - type into currently focused element
+              await page.keyboard.type(toolInput.text);
             } else {
               await page.waitForSelector(toolInput.selector, {
                 state: 'visible',
@@ -628,19 +852,55 @@ export class HybridQuestRunner {
               });
               await page.fill(toolInput.selector, toolInput.text);
             }
-          } else if (toolName === 'click') {
-            if (toolInput.iframe_selector) {
-              const frame = page.frameLocator(toolInput.iframe_selector);
-              const locator = frame.locator(toolInput.selector);
-              await locator.waitFor({ state: 'visible', timeout: 5000 });
-              await locator.click();
-            } else {
-              await page.waitForSelector(toolInput.selector, {
-                state: 'visible',
-                timeout: 5000,
-              });
-              await page.click(toolInput.selector);
+          } else if (toolName === 'click_at_coordinates') {
+            // Capture element at coordinates BEFORE clicking (for replay verification)
+            const elementAtCoords =
+              await this.browserService.getElementAtCoordinates(
+                toolInput.x,
+                toolInput.y
+              );
+            if (elementAtCoords) {
+              (toolInput as any)._targetElement = elementAtCoords;
+              this.log(
+                `  Target: ${elementAtCoords.tag} "${elementAtCoords.text}"`
+              );
             }
+
+            // Capture pre-state for change detection
+            const preUrl = page.url();
+            const preFingerprint =
+              await this.browserService.getAccessibilityFingerprint();
+
+            await page.mouse.click(toolInput.x, toolInput.y);
+
+            // Detect and record change type for script replay
+            const changeType = await this.detectChangeType(
+              preUrl,
+              preFingerprint
+            );
+            (toolInput as any)._detectedChange = changeType;
+          } else if (toolName === 'click') {
+            // Capture pre-state for change detection
+            const preUrl = page.url();
+            const preFingerprint =
+              await this.browserService.getAccessibilityFingerprint();
+
+            await page.waitForSelector(toolInput.selector, {
+              state: 'visible',
+              timeout: 5000,
+            });
+            await page.click(toolInput.selector);
+
+            // Detect and record change type for script replay
+            const changeType = await this.detectChangeType(
+              preUrl,
+              preFingerprint
+            );
+            (toolInput as any)._detectedChange = changeType;
+          } else if (toolName === 'scroll') {
+            const amount = toolInput.amount || 384; // Default: half viewport (768/2)
+            const deltaY = toolInput.direction === 'up' ? -amount : amount;
+            await page.mouse.wheel(0, deltaY);
           } else if (toolName === 'press_key') {
             await page.keyboard.press(toolInput.key);
           } else if (toolName === 'random_wait') {
@@ -660,7 +920,11 @@ export class HybridQuestRunner {
             this.contextService.reverseSubstitutions(toolInput);
 
           let stepDescription = `AI Action: ${toolName}`;
-          if (toolName === 'click') {
+          if (toolName === 'click_at_coordinates') {
+            stepDescription = `AI Action: click at (${toolInput.x}, ${
+              toolInput.y
+            }) - ${toolInput.description || 'element'}`;
+          } else if (toolName === 'click') {
             const selector =
               this.contextService.applySubstitutions(toolInput).selector;
             if (selector.includes('text=')) {
@@ -682,13 +946,32 @@ export class HybridQuestRunner {
             stepDescription = `AI Action: type "${resolvedText}"`;
           }
 
-          this.recordedSteps.push({
+          // Build the recorded step
+          const recordedStep: QuestStep = {
             type: toolName as any,
             params: recordedParams,
             description: stepDescription,
             timestamp: new Date().toISOString(),
             status: 'success',
-          });
+          };
+
+          // For click actions, record the detected change type for script replay validation
+          if (
+            (toolName === 'click' || toolName === 'click_at_coordinates') &&
+            (toolInput as any)._detectedChange
+          ) {
+            recordedStep.expectedChange = (toolInput as any)._detectedChange;
+          }
+
+          // For coordinate clicks, record the target element for replay verification
+          if (
+            toolName === 'click_at_coordinates' &&
+            (toolInput as any)._targetElement
+          ) {
+            recordedStep.expectedElement = (toolInput as any)._targetElement;
+          }
+
+          this.recordedSteps.push(recordedStep);
 
           if (
             failedSelectors.length > 0 &&
@@ -703,8 +986,7 @@ export class HybridQuestRunner {
           }
         } catch (e: unknown) {
           const errMsg = e instanceof Error ? e.message : String(e);
-          // console.error(`[Agent] Tool error (${toolName}):`, errMsg); // Removed console.error
-          this.log(`[Agent] Tool error (${toolName}): ${errMsg}`); // Log instead
+          this.log(`[Agent] Tool error (${toolName}): ${errMsg}`);
           resultText = `Error: ${errMsg}`;
 
           if (toolName === 'click' || toolName === 'type_text') {
@@ -715,35 +997,47 @@ export class HybridQuestRunner {
           }
         }
 
-        const screenshotBase64 = await this.captureScreenshot();
-
+        // Store result WITHOUT screenshot - we'll batch one screenshot at the end
         toolResults.push({
           tool_use_id: toolId,
-          content: [
-            { type: 'text', text: resultText },
-            ...(screenshotBase64
-              ? [
-                  {
-                    type: 'image',
-                    source: {
-                      type: 'base64',
-                      media_type: 'image/jpeg',
-                      data: screenshotBase64,
-                    },
-                  },
-                ]
-              : []),
-          ],
+          resultText,
+          toolName,
         });
       }
 
+      // BATCHED SCREENSHOT: Capture only ONE screenshot after all tools execute
+      // This saves significant tokens when multiple tools are called in one turn
+      const screenshotBase64 = await this.captureScreenshot();
+
+      // Build final tool results - only attach screenshot to the LAST tool result
+      // This gives the AI the current state without redundant intermediate screenshots
       messages.push({
         role: 'user',
-        content: toolResults.map((r) => ({
-          type: 'tool_result',
-          tool_use_id: r.tool_use_id,
-          content: r.content,
-        })),
+        content: toolResults.map((r, idx) => {
+          const isLastTool = idx === toolResults.length - 1;
+          const shouldIncludeScreenshot =
+            isLastTool && screenshotBase64 && this.toolChangesPage(r.toolName);
+
+          return {
+            type: 'tool_result',
+            tool_use_id: r.tool_use_id,
+            content: [
+              { type: 'text', text: r.resultText },
+              ...(shouldIncludeScreenshot
+                ? [
+                    {
+                      type: 'image',
+                      source: {
+                        type: 'base64',
+                        media_type: 'image/jpeg',
+                        data: screenshotBase64,
+                      },
+                    },
+                  ]
+                : []),
+            ],
+          };
+        }),
       });
     }
 

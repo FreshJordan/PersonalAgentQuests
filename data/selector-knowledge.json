@@ -36,5 +36,19 @@
     "input:focus",
     "div:has-text('State *')",
     "button[aria-expanded=\"false\"]"
+  ],
+  "https://www-staging.hellofresh.de/plans": [
+    "input[placeholder=\"Postleitzahl\"]",
+    "[data-test-id=\"Familienfreundlich\"], div:has-text(\"Familienfreundlich\")",
+    "div:has-text(\"Familienfreundlich\")"
+  ],
+  "https://www-staging.hellofresh.de/checkout": [
+    "input:nth-of-type(1)",
+    "input:focus",
+    "input[placeholder*=\"Stadt\"]",
+    "input[placeholder*=\"Telefon\"]",
+    "#credit-card-number",
+    "input[type=\"radio\"]:not(:checked)",
+    "input"
   ]
 }

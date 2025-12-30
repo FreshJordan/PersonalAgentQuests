@@ -224,12 +224,12 @@ export const ActiveQuest: React.FC<ActiveQuestProps> = ({
                       }
                     } else if (
                       currentStatus !== 'ai_takeover' &&
-                      data.message.includes('Executing cached step')
+                      data.message.includes('[Script]:')
                     ) {
                       nextStatus = 'in_progress_script';
                     } else if (
                       currentStatus !== 'ai_takeover' &&
-                      data.message.includes('AI Executing:')
+                      data.message.includes('[AI]:')
                     ) {
                       nextStatus = 'in_progress_ai';
                     } else if (data.message.includes('Step failed:')) {
