@@ -33,10 +33,11 @@ export const QUESTS: QuestDefinition[] = [
     description: 'Navigates to Hello Fresh Germany staging',
     instructions: `
 1. Navigate to https://www-staging.hellofresh.de/plans
-2. Select a random plan from the list. Prefer clicking text over other elements. Log what you select.
-3. Continue through the funnel selecting random options for the meal plan. Log what you select. All optional steps should be skipped, only fill out required information.
-4. Repeat until you reach a page asking for email/login details.
-5. Task complete.
+2. Continue through the signup funnel, only selecting required information. If required to select something, choose randomly.
+4. When you get to the page asking for email/login details, enter a new email in accordance with new email rules, using 'password' as the password.
+5. Enter random delivery address information, ignore validation unless it prevents you from progressing to the next step.
+5. Enter credit card details in accordance with credit card details provided in the system prompt. Progress to next step, doing anything else required.
+6. Once the account is created and there is some format of a 'welcome' message, this task is complete.
     `.trim(),
   },
   {

@@ -351,98 +351,112 @@ export default function LogViewer({ logs, onRefresh }: LogViewerProps) {
                   </tr>
                 </thead>
                 <tbody>
-                  {selectedLog.steps.map((step, idx) => (
-                    <tr
-                      key={idx}
-                      style={{
-                        background: step.description?.startsWith('AI Action')
-                          ? '#fffbe6'
-                          : 'white',
-                      }}
-                    >
-                      <td
-                        style={{ padding: '10px', border: '1px solid #d0d7de' }}
+                  {selectedLog.steps.map((step, idx) => {
+                    // Determine if step was from AI based on index vs scriptStepCount
+                    const isAiStep = idx >= selectedLog.scriptStepCount;
+                    return (
+                      <tr
+                        key={idx}
+                        style={{
+                          background: isAiStep ? '#fffbe6' : 'white',
+                        }}
                       >
-                        {idx + 1}
-                      </td>
-                      <td
-                        style={{ padding: '10px', border: '1px solid #d0d7de' }}
-                      >
-                        <span
+                        <td
                           style={{
-                            padding: '2px 6px',
-                            borderRadius: '4px',
-                            background:
-                              step.type === 'navigate'
-                                ? '#ddf4ff'
-                                : step.type === 'click'
-                                ? '#dafbe1'
-                                : step.type === 'type_text'
-                                ? '#fff8c5'
-                                : '#eee',
-                            fontSize: '12px',
-                            fontWeight: 'bold',
+                            padding: '10px',
+                            border: '1px solid #d0d7de',
                           }}
                         >
-                          {step.type}
-                        </span>
-                        {step.description?.startsWith('AI Action') && (
-                          <div
+                          {idx + 1}
+                        </td>
+                        <td
+                          style={{
+                            padding: '10px',
+                            border: '1px solid #d0d7de',
+                          }}
+                        >
+                          <span
                             style={{
-                              fontSize: '10px',
-                              color: '#9a6700',
-                              marginTop: '4px',
+                              padding: '2px 6px',
+                              borderRadius: '4px',
+                              background:
+                                step.type === 'navigate'
+                                  ? '#ddf4ff'
+                                  : step.type === 'click'
+                                  ? '#dafbe1'
+                                  : step.type === 'type_text'
+                                  ? '#fff8c5'
+                                  : '#eee',
+                              fontSize: '12px',
                               fontWeight: 'bold',
                             }}
                           >
-                            AI GENERATED
-                          </div>
-                        )}
-                      </td>
-                      <td
-                        style={{ padding: '10px', border: '1px solid #d0d7de' }}
-                      >
-                        <pre
+                            {step.type}
+                          </span>
+                          {isAiStep && (
+                            <div
+                              style={{
+                                fontSize: '10px',
+                                color: '#9a6700',
+                                marginTop: '4px',
+                                fontWeight: 'bold',
+                              }}
+                            >
+                              AI GENERATED
+                            </div>
+                          )}
+                        </td>
+                        <td
                           style={{
-                            margin: 0,
-                            whiteSpace: 'pre-wrap',
-                            fontSize: '12px',
-                            fontFamily: 'monospace',
-                            background: '#f6f8fa',
-                            padding: '5px',
-                            borderRadius: '4px',
+                            padding: '10px',
+                            border: '1px solid #d0d7de',
                           }}
                         >
-                          {JSON.stringify(step.params, null, 2)}
-                        </pre>
-                        {step.validation && (
-                          <div
+                          <pre
                             style={{
-                              marginTop: '8px',
-                              padding: '6px',
-                              background: '#f0fdf4',
-                              border: '1px solid #bef5cb',
-                              borderRadius: '4px',
+                              margin: 0,
+                              whiteSpace: 'pre-wrap',
                               fontSize: '12px',
-                              color: '#1a7f37',
+                              fontFamily: 'monospace',
+                              background: '#f6f8fa',
+                              padding: '5px',
+                              borderRadius: '4px',
                             }}
                           >
-                            <strong>Verified:</strong> {step.validation.type} "
-                            {step.validation.value}"
-                          </div>
-                        )}
-                      </td>
-                      <td
-                        style={{ padding: '10px', border: '1px solid #d0d7de' }}
-                      >
-                        {step.status === 'success' ? (
-                          <span title="Success">✅</span>
-                        ) : (
-                          <span title="Failed">❌</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
+                            {JSON.stringify(step.params, null, 2)}
+                          </pre>
+                          {step.validation && (
+                            <div
+                              style={{
+                                marginTop: '8px',
+                                padding: '6px',
+                                background: '#f0fdf4',
+                                border: '1px solid #bef5cb',
+                                borderRadius: '4px',
+                                fontSize: '12px',
+                                color: '#1a7f37',
+                              }}
+                            >
+                              <strong>Verified:</strong> {step.validation.type}{' '}
+                              "{step.validation.value}"
+                            </div>
+                          )}
+                        </td>
+                        <td
+                          style={{
+                            padding: '10px',
+                            border: '1px solid #d0d7de',
+                          }}
+                        >
+                          {step.status === 'success' ? (
+                            <span title="Success">✅</span>
+                          ) : (
+                            <span title="Failed">❌</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

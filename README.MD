@@ -20,6 +20,7 @@ Since this project is isolated from the main workspace, you need to install depe
 
 3.  Run the "Good Morning" script:
     ```bash
+    aws sso login --profile sso-bedrock
     npm run goodMorning
     ```
 
