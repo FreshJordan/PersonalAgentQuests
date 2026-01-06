@@ -1,6 +1,6 @@
 # Personal Agent Quests
 
-This is a personal playground and quest log, running as a simple React application.
+This is a personal playground and quest log, running as a simple React application. Not intended for widespread internal usage at this time. Consider this an advanced POC.
 
 ## Getting Started
 
@@ -14,13 +14,23 @@ cd personal-agent-quests
 
 ### 2. Install dependencies
 
-Install dependencies using npm to avoid modifying the root yarn.lock:
+Install dependencies:
 
 ```bash
 npm install
 ```
 
-### 3. Run the "Good Morning" script
+### 3. Environment Configuration
+
+Create a copy of the example environment file and populate it with your values:
+
+```bash
+cp .env.example .env
+```
+
+Edit the `.env` file with your configuration values as needed.
+
+### 4. Run the "Good Morning" script
 
 #### Prerequisites
 
@@ -52,6 +62,11 @@ If you don't have it already, make sure you are part of the bedrock user group f
    region = eu-west-1" > ~/.aws/config
    ```
 
+4. Login to AWS:
+   ```bash
+   aws sso login --profile sso-bedrock
+   ```
+
 #### Cursor CLI Setup
 
 1. Install Cursor CLI:
@@ -62,11 +77,10 @@ If you don't have it already, make sure you are part of the bedrock user group f
    source ~/.zshrc
    ```
 
-2. Login to the AI Tools:
+2. Login to the Cursor CLI:
 
    ```bash
    cursor-agent login
-   aws sso login --profile sso-bedrock
    ```
 
 #### Run the Application
