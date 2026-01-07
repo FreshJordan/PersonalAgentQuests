@@ -10,4 +10,5 @@ coverage
 # Data
 data/logs/
 data/scripts/
+personal-agent-quests/data/logs/
 .env

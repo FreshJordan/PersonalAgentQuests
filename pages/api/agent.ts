@@ -11,7 +11,8 @@ export default async function handler(
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { query, questId, userInput, selectedTickets } = req.body;
+  const { query, questId, userInput, selectedTickets, followUpMessage } =
+    req.body;
   if (!query) {
     return res.status(400).json({ error: 'Query is required' });
   }
@@ -58,7 +59,9 @@ export default async function handler(
 
   if (questId === 'jira-ticket-research') {
     const runner = new JiraQuestRunner(eventHandler);
-    if (selectedTickets) {
+    if (followUpMessage && selectedTickets) {
+      await runner.handleFollowUp(followUpMessage, selectedTickets);
+    } else if (selectedTickets) {
       await runner.researchTickets(selectedTickets);
     } else {
       await runner.run(userInput);

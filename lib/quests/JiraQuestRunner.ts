@@ -8,12 +8,17 @@ import { BedrockService } from '../services/bedrock';
 import { GitService } from '../services/git';
 import { CursorAgentService } from '../services/cursor';
 
+// Context optimization: Keep last N exchanges (user + assistant pairs)
+const MAX_CONVERSATION_HISTORY = 10;
+
 export class JiraQuestRunner {
   private jiraService: JiraService;
   private bedrockService: BedrockService;
   private gitService: GitService;
   private cursorService: CursorAgentService;
   private eventCallback: (event: AgentEvent) => void;
+  private conversationHistory: Array<{ role: string; content: any }> = [];
+  private currentTicketContext: string = '';
 
   constructor(eventCallback: (event: AgentEvent) => void) {
     this.eventCallback = eventCallback;
@@ -25,6 +30,68 @@ export class JiraQuestRunner {
 
   private log(message: string) {
     this.eventCallback({ type: 'log', message: `[JiraRunner] ${message}` });
+  }
+
+  /**
+   * Trims conversation history to manage context size.
+   * Keeps only the most recent exchanges to prevent unbounded growth.
+   */
+  private trimConversationHistory() {
+    const maxMessages = MAX_CONVERSATION_HISTORY * 2; // user + assistant pairs
+
+    if (this.conversationHistory.length <= maxMessages) {
+      return;
+    }
+
+    const toRemove = this.conversationHistory.length - maxMessages;
+    const removed = this.conversationHistory.splice(0, toRemove);
+
+    this.log(
+      `Context optimization: Trimmed ${toRemove} old messages (${toRemove / 2} exchanges)`
+    );
+
+    // Add summary message to maintain context continuity
+    this.conversationHistory.unshift({
+      role: 'user',
+      content: [
+        {
+          type: 'text',
+          text: `[Note: Earlier conversation trimmed - ${toRemove / 2} previous exchanges removed to optimize context size]`,
+        },
+      ],
+    });
+  }
+
+  /**
+   * Builds optimized context string for Cursor CLI instruction files.
+   * Truncates very long messages and provides size estimates.
+   */
+  private buildOptimizedContextForCursor(): string {
+    const context = this.conversationHistory
+      .map((msg, index) => {
+        const role = msg.role === 'assistant' ? 'Assistant' : 'User';
+        let text =
+          Array.isArray(msg.content) && msg.content[0]?.text
+            ? msg.content[0].text
+            : JSON.stringify(msg.content);
+
+        // Truncate very long messages to prevent excessive context
+        if (text.length > 3000) {
+          text =
+            text.substring(0, 3000) +
+            '\n\n[...content truncated for context optimization...]';
+        }
+
+        return `## ${role} (message ${index + 1}):\n${text}`;
+      })
+      .join('\n\n---\n\n');
+
+    const estimatedTokens = Math.round(context.length / 4); // Rough estimate: 1 token ≈ 4 chars
+    this.log(
+      `Context size: ~${Math.round(context.length / 1000)}KB, ~${estimatedTokens} tokens`
+    );
+
+    return context;
   }
 
   public async run(filterPrefix?: string) {
@@ -247,11 +314,110 @@ You are an expert engineer tasked with completing the above objective. Your prio
         }
       }
 
+      // Store context for follow-up questions
+      this.currentTicketContext = finalReport;
+      this.conversationHistory = [
+        {
+          role: 'assistant',
+          content: [{ type: 'text', text: finalReport }],
+        },
+      ];
+
       this.eventCallback({ type: 'result', text: finalReport });
       this.eventCallback({ type: 'done' });
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
       this.log(`Processing Error: ${msg}`);
+      this.eventCallback({ type: 'error', message: msg });
+      this.eventCallback({ type: 'done' });
+    }
+  }
+
+  public async handleFollowUp(followUpMessage: string, ticketKeys: string[]) {
+    try {
+      this.log(`Processing follow-up message via Cursor CLI...`);
+
+      // Trim conversation history to manage context size
+      this.trimConversationHistory();
+
+      // Build optimized context from previous report and conversation
+      const conversationContext = this.buildOptimizedContextForCursor();
+
+      // Create instruction file for Cursor CLI
+      const instructions = `# Follow-up Request for JIRA Tickets: ${ticketKeys.join(', ')}
+
+## CONTEXT
+You are helping with JIRA ticket research and implementation. Below is the conversation history so far.
+
+${conversationContext}
+
+---
+
+## USER'S FOLLOW-UP QUESTION/REQUEST
+${followUpMessage}
+
+---
+
+## YOUR TASK
+Respond to the user's follow-up question or request. Use the context from the previous conversation to provide a helpful, actionable response.
+
+Guidelines:
+- If they're asking questions, provide clear answers based on the ticket context and codebase
+- If they're proposing changes, acknowledge them and provide implementation guidance
+- If they want to modify instructions or code, provide specific suggestions
+- Search the codebase when needed to give accurate information
+- Be concise but thorough
+- Format your response using markdown for readability
+
+Remember: You have access to the full codebase and can search for files, read code, and provide specific implementation details.
+`;
+
+      const instructionFile = `FOLLOWUP_${ticketKeys[0]}_${Date.now()}.md`;
+      const instructionPath = path.resolve(
+        process.cwd(),
+        '..',
+        instructionFile
+      );
+      fs.writeFileSync(instructionPath, instructions);
+
+      this.log(`Triggering Cursor CLI for follow-up...`);
+
+      // Use Cursor CLI to process the follow-up
+      const fullOutput = await this.cursorService.runAgent(instructionPath, {
+        onLog: (msg) => this.log(msg),
+        onTextDelta: (text) => {
+          // Stream partial text back to UI if needed
+          this.eventCallback({
+            type: 'log',
+            message: `[Agent] ${text}`,
+          });
+        },
+      });
+
+      // Clean up instruction file
+      try {
+        fs.unlinkSync(instructionPath);
+      } catch (e) {
+        // Ignore cleanup errors
+      }
+
+      this.log('Cursor CLI follow-up completed.');
+
+      // Add to conversation history
+      this.conversationHistory.push({
+        role: 'user',
+        content: [{ type: 'text', text: followUpMessage }],
+      });
+      this.conversationHistory.push({
+        role: 'assistant',
+        content: [{ type: 'text', text: fullOutput }],
+      });
+
+      this.eventCallback({ type: 'result', text: fullOutput });
+      this.eventCallback({ type: 'done' });
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      this.log(`Follow-up Error: ${msg}`);
       this.eventCallback({ type: 'error', message: msg });
       this.eventCallback({ type: 'done' });
     }

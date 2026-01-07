@@ -3,11 +3,12 @@ import {
   InvokeModelCommand,
 } from '@aws-sdk/client-bedrock-runtime';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
+import { BEDROCK_MODEL_ID } from '../constants';
 
 export class BedrockService {
   private client: BedrockRuntimeClient;
   // Default to Sonnet 3.5 (v1) if not specified
-  private defaultModelId = 'eu.anthropic.claude-sonnet-4-5-20250929-v1:0';
+  private defaultModelId = BEDROCK_MODEL_ID;
 
   constructor(
     region = process.env.AWS_REGION || 'eu-west-1',
@@ -19,12 +20,30 @@ export class BedrockService {
     });
   }
 
+  /**
+   * Estimates token count for context size monitoring
+   * Rough estimation: 1 token ≈ 4 characters
+   */
+  private estimateTokens(messages: any[]): number {
+    const totalChars = JSON.stringify(messages).length;
+    return Math.ceil(totalChars / 4);
+  }
+
   public async invokeModel(
     messages: any[],
     modelId?: string,
     maxTokens = 2000,
     tools?: any[]
   ): Promise<{ content: any; usage: any }> {
+    // Log context size for monitoring
+    const estimatedTokens = this.estimateTokens(messages);
+    if (estimatedTokens > 100000) {
+      // eslint-disable-next-line no-console
+      console.warn(
+        `⚠️  Large context detected: ~${Math.round(estimatedTokens / 1000)}K tokens estimated`
+      );
+    }
+
     const payload: any = {
       anthropic_version: 'bedrock-2023-05-31',
       max_tokens: maxTokens,

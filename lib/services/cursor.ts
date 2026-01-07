@@ -3,6 +3,7 @@ import path from 'path';
 import fs from 'fs';
 import { exec } from 'child_process';
 import util from 'util';
+import { CURSOR_MODEL } from '../constants';
 
 const execAsync = util.promisify(exec);
 
@@ -43,7 +44,7 @@ export class CursorAgentService {
           '--force',
           '--approve-mcps',
           '--model',
-          'gemini-3-pro',
+          CURSOR_MODEL,
           '--output-format',
           'stream-json',
           '--stream-partial-output',

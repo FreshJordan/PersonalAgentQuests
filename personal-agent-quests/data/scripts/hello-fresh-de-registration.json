@@ -1,0 +1,825 @@
+{
+  "id": "hello-fresh-de-registration",
+  "name": "hello-fresh-de-registration",
+  "description": "1. Navigate to https://www-staging.hellofresh.de/plans\n2. Continue through the signup funnel, only selecting required information. If required to select something, choose randomly.\n4. When you get to the page asking for email/login details, enter a new email in accordance with new email rules, using 'password' as the password.\n5. Enter random delivery address information, ignore validation unless it prevents you from progressing to the next step.\n5. Enter credit card details in accordance with credit card details provided in the system prompt. Progress to next step, doing anything else required.\n6. Once the account is created and there is some format of a 'welcome' message, this task is complete.",
+  "steps": [
+    {
+      "type": "navigate",
+      "params": {
+        "url": "https://www-staging.hellofresh.de/plans"
+      },
+      "description": "AI Action: navigate",
+      "timestamp": "2026-01-07T14:00:53.085Z",
+      "status": "success"
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 511,
+        "y": 483,
+        "description": "NEIN DANKE button to close modal",
+        "_targetElement": {
+          "tag": "span",
+          "text": "NEIN DANKE",
+          "identifier": "span"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (511, 483) - NEIN DANKE button to close modal",
+      "timestamp": "2026-01-07T14:00:59.174Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "span",
+        "text": "NEIN DANKE",
+        "identifier": "span"
+      }
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 512,
+        "y": 280,
+        "description": "Postleitzahl input field",
+        "_targetElement": {
+          "tag": "input",
+          "text": "Postleitzahl",
+          "identifier": "input#Postleitzahl[name=\"zipcode\"][role=\"textbox\"]"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (512, 280) - Postleitzahl input field",
+      "timestamp": "2026-01-07T14:01:04.744Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "input",
+        "text": "Postleitzahl",
+        "identifier": "input#Postleitzahl[name=\"zipcode\"][role=\"textbox\"]"
+      }
+    },
+    {
+      "type": "type_text",
+      "params": {
+        "text": "10115"
+      },
+      "description": "AI Action: type \"10115\"",
+      "timestamp": "2026-01-07T14:01:09.626Z",
+      "status": "success"
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 512,
+        "y": 665,
+        "description": "Weiter (Continue) button",
+        "_targetElement": {
+          "tag": "span",
+          "text": "Weiter",
+          "identifier": "span"
+        },
+        "_detectedChange": "url"
+      },
+      "description": "AI Action: click at (512, 665) - Weiter (Continue) button",
+      "timestamp": "2026-01-07T14:01:14.935Z",
+      "status": "success",
+      "expectedChange": "url",
+      "expectedElement": {
+        "tag": "span",
+        "text": "Weiter",
+        "identifier": "span"
+      }
+    },
+    {
+      "type": "scroll",
+      "params": {
+        "direction": "down",
+        "amount": 200
+      },
+      "description": "AI Action: scroll",
+      "timestamp": "2026-01-07T14:01:22.623Z",
+      "status": "success"
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 512,
+        "y": 549,
+        "description": "Weiter (Continue) button",
+        "_targetElement": {
+          "tag": "span",
+          "text": "Weiter",
+          "identifier": "span"
+        },
+        "_detectedChange": "url"
+      },
+      "description": "AI Action: click at (512, 549) - Weiter (Continue) button",
+      "timestamp": "2026-01-07T14:01:29.245Z",
+      "status": "success",
+      "expectedChange": "url",
+      "expectedElement": {
+        "tag": "span",
+        "text": "Weiter",
+        "identifier": "span"
+      }
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 512,
+        "y": 511,
+        "description": "Weiter (Continue) button",
+        "_targetElement": {
+          "tag": "span",
+          "text": "Weiter",
+          "identifier": "span"
+        },
+        "_detectedChange": "url"
+      },
+      "description": "AI Action: click at (512, 511) - Weiter (Continue) button",
+      "timestamp": "2026-01-07T14:01:36.365Z",
+      "status": "success",
+      "expectedChange": "url",
+      "expectedElement": {
+        "tag": "span",
+        "text": "Weiter",
+        "identifier": "span"
+      }
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 512,
+        "y": 721,
+        "description": "Weiter (Continue) button",
+        "_targetElement": {
+          "tag": "span",
+          "text": "Weiter",
+          "identifier": "span"
+        },
+        "_detectedChange": "url"
+      },
+      "description": "AI Action: click at (512, 721) - Weiter (Continue) button",
+      "timestamp": "2026-01-07T14:01:43.299Z",
+      "status": "success",
+      "expectedChange": "url",
+      "expectedElement": {
+        "tag": "span",
+        "text": "Weiter",
+        "identifier": "span"
+      }
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 511,
+        "y": 591,
+        "description": "Weiter (Continue) button",
+        "_targetElement": {
+          "tag": "span",
+          "text": "Weiter",
+          "identifier": "span"
+        },
+        "_detectedChange": "url"
+      },
+      "description": "AI Action: click at (511, 591) - Weiter (Continue) button",
+      "timestamp": "2026-01-07T14:01:50.032Z",
+      "status": "success",
+      "expectedChange": "url",
+      "expectedElement": {
+        "tag": "span",
+        "text": "Weiter",
+        "identifier": "span"
+      }
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 511,
+        "y": 659,
+        "description": "Weiter (Continue) button",
+        "_targetElement": {
+          "tag": "span",
+          "text": "Weiter",
+          "identifier": "span"
+        },
+        "_detectedChange": "url"
+      },
+      "description": "AI Action: click at (511, 659) - Weiter (Continue) button",
+      "timestamp": "2026-01-07T14:01:55.989Z",
+      "status": "success",
+      "expectedChange": "url",
+      "expectedElement": {
+        "tag": "span",
+        "text": "Weiter",
+        "identifier": "span"
+      }
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 601,
+        "y": 603,
+        "description": "Weiter (Continue) button",
+        "_targetElement": {
+          "tag": "span",
+          "text": "Weiter",
+          "identifier": "span"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (601, 603) - Weiter (Continue) button",
+      "timestamp": "2026-01-07T14:02:04.371Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "span",
+        "text": "Weiter",
+        "identifier": "span"
+      }
+    },
+    {
+      "type": "random_wait",
+      "params": {
+        "min": 2000,
+        "max": 3000
+      },
+      "description": "AI Action: random_wait",
+      "timestamp": "2026-01-07T14:02:11.921Z",
+      "status": "success"
+    },
+    {
+      "type": "random_wait",
+      "params": {
+        "min": 2000,
+        "max": 3000
+      },
+      "description": "AI Action: random_wait",
+      "timestamp": "2026-01-07T14:02:18.610Z",
+      "status": "success"
+    },
+    {
+      "type": "scroll",
+      "params": {
+        "direction": "down",
+        "amount": 200
+      },
+      "description": "AI Action: scroll",
+      "timestamp": "2026-01-07T14:02:24.929Z",
+      "status": "success"
+    },
+    {
+      "type": "scroll",
+      "params": {
+        "direction": "up",
+        "amount": 150
+      },
+      "description": "AI Action: scroll",
+      "timestamp": "2026-01-07T14:02:31.633Z",
+      "status": "success"
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 701,
+        "y": 320,
+        "description": "Email input field",
+        "_targetElement": {
+          "tag": "input",
+          "text": "Email",
+          "identifier": "input#hf-form-group-username-input[name=\"username\"][role=\"textbox\"]"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (701, 320) - Email input field",
+      "timestamp": "2026-01-07T14:02:38.965Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "input",
+        "text": "Email",
+        "identifier": "input#hf-form-group-username-input[name=\"username\"][role=\"textbox\"]"
+      }
+    },
+    {
+      "type": "type_text",
+      "params": {
+        "text": "{{dynamicEmail}}"
+      },
+      "description": "AI Action: type \"jordan.mcinnis+jan7270983@hellofresh.ca\"",
+      "timestamp": "2026-01-07T14:02:44.241Z",
+      "status": "success"
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 701,
+        "y": 503,
+        "description": "Weiter (Continue) button",
+        "_targetElement": {
+          "tag": "span",
+          "text": "Weiter",
+          "identifier": "span"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (701, 503) - Weiter (Continue) button",
+      "timestamp": "2026-01-07T14:02:50.359Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "span",
+        "text": "Weiter",
+        "identifier": "span"
+      }
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 701,
+        "y": 505,
+        "description": "Passwort erstellen (Create password) button",
+        "_targetElement": {
+          "tag": "span",
+          "text": "Passwort erstellen",
+          "identifier": "span"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (701, 505) - Passwort erstellen (Create password) button",
+      "timestamp": "2026-01-07T14:02:57.193Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "span",
+        "text": "Passwort erstellen",
+        "identifier": "span"
+      }
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 701,
+        "y": 545,
+        "description": "Passwort wählen (Choose password) field",
+        "_targetElement": {
+          "tag": "input",
+          "text": "Passwort wählen",
+          "identifier": "input#hf-form-group-password-input[name=\"password\"][role=\"textbox\"]"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (701, 545) - Passwort wählen (Choose password) field",
+      "timestamp": "2026-01-07T14:03:04.564Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "input",
+        "text": "Passwort wählen",
+        "identifier": "input#hf-form-group-password-input[name=\"password\"][role=\"textbox\"]"
+      }
+    },
+    {
+      "type": "type_text",
+      "params": {
+        "text": "password"
+      },
+      "description": "AI Action: type \"password\"",
+      "timestamp": "2026-01-07T14:03:09.581Z",
+      "status": "success"
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 701,
+        "y": 649,
+        "description": "Weiter (Continue) button after entering password",
+        "_targetElement": {
+          "tag": "span",
+          "text": "Weiter",
+          "identifier": "span"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (701, 649) - Weiter (Continue) button after entering password",
+      "timestamp": "2026-01-07T14:03:15.895Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "span",
+        "text": "Weiter",
+        "identifier": "span"
+      }
+    },
+    {
+      "type": "scroll",
+      "params": {
+        "direction": "down",
+        "amount": 200
+      },
+      "description": "AI Action: scroll",
+      "timestamp": "2026-01-07T14:03:22.821Z",
+      "status": "success"
+    },
+    {
+      "type": "scroll",
+      "params": {
+        "direction": "up",
+        "amount": 400
+      },
+      "description": "AI Action: scroll",
+      "timestamp": "2026-01-07T14:03:32.358Z",
+      "status": "success"
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 301,
+        "y": 210,
+        "description": "Vorname (First name) field",
+        "_targetElement": {
+          "tag": "input",
+          "text": "Vorname ",
+          "identifier": "input#firstName[name=\"firstName\"][role=\"textbox\"]"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (301, 210) - Vorname (First name) field",
+      "timestamp": "2026-01-07T14:03:40.412Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "input",
+        "text": "Vorname ",
+        "identifier": "input#firstName[name=\"firstName\"][role=\"textbox\"]"
+      }
+    },
+    {
+      "type": "type_text",
+      "params": {
+        "text": "Max"
+      },
+      "description": "AI Action: type \"Max\"",
+      "timestamp": "2026-01-07T14:03:45.537Z",
+      "status": "success"
+    },
+    {
+      "type": "press_key",
+      "params": {
+        "key": "Tab"
+      },
+      "description": "AI Action: press_key",
+      "timestamp": "2026-01-07T14:03:50.466Z",
+      "status": "success"
+    },
+    {
+      "type": "type_text",
+      "params": {
+        "text": "Müller"
+      },
+      "description": "AI Action: type \"Müller\"",
+      "timestamp": "2026-01-07T14:03:55.639Z",
+      "status": "success"
+    },
+    {
+      "type": "press_key",
+      "params": {
+        "key": "Tab"
+      },
+      "description": "AI Action: press_key",
+      "timestamp": "2026-01-07T14:04:01.866Z",
+      "status": "success"
+    },
+    {
+      "type": "type_text",
+      "params": {
+        "text": "Lindenstraße"
+      },
+      "description": "AI Action: type \"Lindenstraße\"",
+      "timestamp": "2026-01-07T14:04:07.319Z",
+      "status": "success"
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 512,
+        "y": 310,
+        "description": "First Lindenstr. address suggestion",
+        "_targetElement": {
+          "tag": "div",
+          "text": "Lindenstr.29303 Bergen - 11 Addresses",
+          "identifier": "div"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (512, 310) - First Lindenstr. address suggestion",
+      "timestamp": "2026-01-07T14:04:13.447Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "div",
+        "text": "Lindenstr.29303 Bergen - 11 Addresses",
+        "identifier": "div"
+      }
+    },
+    {
+      "type": "scroll",
+      "params": {
+        "direction": "down"
+      },
+      "description": "AI Action: scroll",
+      "timestamp": "2026-01-07T14:10:58.179Z",
+      "status": "success"
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 512,
+        "y": 298,
+        "description": "First address suggestion - Lindenring 12",
+        "_targetElement": {
+          "tag": "div",
+          "text": "Lindenring 1229352 Adelheidsdorf",
+          "identifier": "div"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (512, 298) - First address suggestion - Lindenring 12",
+      "timestamp": "2026-01-07T14:11:10.788Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "div",
+        "text": "Lindenring 1229352 Adelheidsdorf",
+        "identifier": "div"
+      }
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 302,
+        "y": 450,
+        "description": "Phone number field",
+        "_targetElement": {
+          "tag": "input",
+          "text": "Telefon/Mobil ",
+          "identifier": "input#phone[name=\"phone\"][role=\"textbox\"]"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (302, 450) - Phone number field",
+      "timestamp": "2026-01-07T14:11:19.268Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "input",
+        "text": "Telefon/Mobil ",
+        "identifier": "input#phone[name=\"phone\"][role=\"textbox\"]"
+      }
+    },
+    {
+      "type": "type_text",
+      "params": {
+        "text": "01701234567"
+      },
+      "description": "AI Action: type \"01701234567\"",
+      "timestamp": "2026-01-07T14:11:25.055Z",
+      "status": "success"
+    },
+    {
+      "type": "scroll",
+      "params": {
+        "direction": "down"
+      },
+      "description": "AI Action: scroll",
+      "timestamp": "2026-01-07T14:11:31.395Z",
+      "status": "success"
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 512,
+        "y": 613,
+        "description": "Weiter (Continue) button",
+        "_targetElement": {
+          "tag": "span",
+          "text": "Weiter",
+          "identifier": "span"
+        },
+        "_detectedChange": "url"
+      },
+      "description": "AI Action: click at (512, 613) - Weiter (Continue) button",
+      "timestamp": "2026-01-07T14:11:38.471Z",
+      "status": "success",
+      "expectedChange": "url",
+      "expectedElement": {
+        "tag": "span",
+        "text": "Weiter",
+        "identifier": "span"
+      }
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 133,
+        "y": 651,
+        "description": "Kreditkarte (Credit card) radio button",
+        "_targetElement": {
+          "tag": "input",
+          "text": "input",
+          "identifier": "input#ProcessOut_CreditCard[name=\"paymentMethodRadio\"][role=\"radio\"]"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (133, 651) - Kreditkarte (Credit card) radio button",
+      "timestamp": "2026-01-07T14:11:47.504Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "input",
+        "text": "input",
+        "identifier": "input#ProcessOut_CreditCard[name=\"paymentMethodRadio\"][role=\"radio\"]"
+      }
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 512,
+        "y": 669,
+        "description": "Card number field",
+        "_targetElement": {
+          "tag": "iframe",
+          "text": "iframe",
+          "identifier": "iframe[name=\"osu1z\"]"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (512, 669) - Card number field",
+      "timestamp": "2026-01-07T14:11:54.678Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "iframe",
+        "text": "iframe",
+        "identifier": "iframe[name=\"osu1z\"]"
+      }
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 512,
+        "y": 669,
+        "description": "Kartennummer (Card number) input field",
+        "_targetElement": {
+          "tag": "iframe",
+          "text": "iframe",
+          "identifier": "iframe[name=\"osu1z\"]"
+        },
+        "_detectedChange": "none"
+      },
+      "description": "AI Action: click at (512, 669) - Kartennummer (Card number) input field",
+      "timestamp": "2026-01-07T14:12:04.232Z",
+      "status": "success",
+      "expectedChange": "none",
+      "expectedElement": {
+        "tag": "iframe",
+        "text": "iframe",
+        "identifier": "iframe[name=\"osu1z\"]"
+      }
+    },
+    {
+      "type": "type_text",
+      "params": {
+        "text": "4111111111111111"
+      },
+      "description": "AI Action: type \"4111111111111111\"",
+      "timestamp": "2026-01-07T14:12:10.248Z",
+      "status": "success"
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 314,
+        "y": 734,
+        "description": "Ablaufdatum (Expiry date) field",
+        "_targetElement": {
+          "tag": "iframe",
+          "text": "iframe",
+          "identifier": "iframe[name=\"dyrdol\"]"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (314, 734) - Ablaufdatum (Expiry date) field",
+      "timestamp": "2026-01-07T14:12:16.451Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "iframe",
+        "text": "iframe",
+        "identifier": "iframe[name=\"dyrdol\"]"
+      }
+    },
+    {
+      "type": "type_text",
+      "params": {
+        "text": "0330"
+      },
+      "description": "AI Action: type \"0330\"",
+      "timestamp": "2026-01-07T14:12:22.170Z",
+      "status": "success"
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 710,
+        "y": 734,
+        "description": "Sicherheitscode CVV field",
+        "_targetElement": {
+          "tag": "iframe",
+          "text": "iframe",
+          "identifier": "iframe[name=\"yo0ddv\"]"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (710, 734) - Sicherheitscode CVV field",
+      "timestamp": "2026-01-07T14:12:28.142Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "iframe",
+        "text": "iframe",
+        "identifier": "iframe[name=\"yo0ddv\"]"
+      }
+    },
+    {
+      "type": "type_text",
+      "params": {
+        "text": "737"
+      },
+      "description": "AI Action: type \"737\"",
+      "timestamp": "2026-01-07T14:12:33.338Z",
+      "status": "success"
+    },
+    {
+      "type": "scroll",
+      "params": {
+        "direction": "down"
+      },
+      "description": "AI Action: scroll",
+      "timestamp": "2026-01-07T14:12:40.073Z",
+      "status": "success"
+    },
+    {
+      "type": "scroll",
+      "params": {
+        "direction": "down"
+      },
+      "description": "AI Action: scroll",
+      "timestamp": "2026-01-07T14:12:46.854Z",
+      "status": "success"
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 512,
+        "y": 551,
+        "description": "Zahlungspflichtig bestellen (Order with obligation to pay) button",
+        "_targetElement": {
+          "tag": "span",
+          "text": "Zahlungspflichtig bestellen",
+          "identifier": "span"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (512, 551) - Zahlungspflichtig bestellen (Order with obligation to pay) button",
+      "timestamp": "2026-01-07T14:12:54.909Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "span",
+        "text": "Zahlungspflichtig bestellen",
+        "identifier": "span"
+      }
+    },
+    {
+      "type": "scroll",
+      "params": {
+        "direction": "down"
+      },
+      "description": "AI Action: scroll",
+      "timestamp": "2026-01-07T14:13:02.859Z",
+      "status": "success"
+    },
+    {
+      "type": "wait",
+      "params": {
+        "duration": 2000
+      },
+      "description": "Final Wait",
+      "timestamp": "2026-01-07T14:13:13.329Z",
+      "status": "success"
+    }
+  ],
+  "lastUpdated": "2026-01-07T14:13:13.329Z",
+  "expiresAt": "2026-01-21T14:13:13.329Z"
+}

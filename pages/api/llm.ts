@@ -4,6 +4,7 @@ import {
   InvokeModelCommand,
 } from '@aws-sdk/client-bedrock-runtime';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
+import { BEDROCK_MODEL_ID } from '../../lib/constants';
 
 type Data = {
   result?: string;
@@ -53,7 +54,7 @@ export default async function handler(
 
   try {
     // Using Claude 3 Sonnet as the model
-    const modelId = 'eu.anthropic.claude-sonnet-4-5-20250929-v1:0';
+    const modelId = BEDROCK_MODEL_ID;
 
     // Prepare the payload for Claude 3
     const payload = {

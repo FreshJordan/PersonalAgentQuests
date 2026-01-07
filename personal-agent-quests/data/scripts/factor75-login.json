@@ -1,0 +1,1213 @@
+{
+  "id": "factor75-login",
+  "name": "factor75-login",
+  "description": "1. Navigate to https://www-staging.factor75.com/plans\n2. Select a random plan from the list. Prefer clicking text over other elements. Log what you select.\n3. Continue through the funnel selecting random options for the meal plan. Log what you select. All optional steps should be skipped, only fill out required information.\n4. Repeat until you reach a page asking for email/login details.\n5. Enter a new email in accordance with new email rules.\n6. Enter password: 'password'\n7. Enter a delivery address in the state of new york.\n8. Enter credit card details in accordance with credit card details provided in the system prompt. Progress to next step, doing anything else required.\n9. Once the account is created and there is some format of a 'welcome' message, this task is complete.\n10. Task complete.",
+  "steps": [
+    {
+      "type": "navigate",
+      "params": {
+        "url": "https://www-staging.factor75.com/plans"
+      },
+      "description": "AI Action: navigate",
+      "timestamp": "2026-01-06T17:11:36.277Z",
+      "status": "success"
+    },
+    {
+      "description": "AI Action: click at (511, 275) - zip code input field",
+      "timestamp": "2026-01-06T17:11:45.056Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "input",
+        "text": "Enter zip code",
+        "identifier": "input#Enterzipcode[name=\"zipcode\"][role=\"textbox\"]"
+      }
+    },
+    {
+      "type": "type_text",
+      "params": {
+        "text": "10001"
+      },
+      "description": "AI Action: type \"10001\"",
+      "timestamp": "2026-01-06T17:11:50.521Z",
+      "status": "success"
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 512,
+        "y": 350,
+        "description": "Continue button after entering zip code",
+        "_targetElement": {
+          "tag": "img",
+          "text": "img",
+          "identifier": "img"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (512, 350) - Continue button after entering zip code",
+      "timestamp": "2026-01-06T17:43:08.586Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "img",
+        "text": "img",
+        "identifier": "img"
+      }
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 511,
+        "y": 622,
+        "description": "Continue button to proceed to plan selection",
+        "_targetElement": {
+          "tag": "span",
+          "text": "Continue",
+          "identifier": "span"
+        },
+        "_detectedChange": "url"
+      },
+      "description": "AI Action: click at (511, 622) - Continue button to proceed to plan selection",
+      "timestamp": "2026-01-06T17:43:15.288Z",
+      "status": "success",
+      "expectedChange": "url",
+      "expectedElement": {
+        "tag": "span",
+        "text": "Continue",
+        "identifier": "span"
+      }
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 275,
+        "y": 268,
+        "description": "Selecting \"Improve my health\" goal",
+        "_targetElement": {
+          "tag": "button",
+          "text": "Improve my health",
+          "identifier": "button[data-testid=\"goalsQuiz-improveHealth\"][role=\"checkbox\"]"
+        },
+        "_detectedChange": "none"
+      },
+      "description": "AI Action: click at (275, 268) - Selecting \"Improve my health\" goal",
+      "timestamp": "2026-01-06T17:43:26.534Z",
+      "status": "success",
+      "expectedChange": "none",
+      "expectedElement": {
+        "tag": "button",
+        "text": "Improve my health",
+        "identifier": "button[data-testid=\"goalsQuiz-improveHealth\"][role=\"checkbox\"]"
+      }
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 275,
+        "y": 332,
+        "description": "Selecting \"Save time in the kitchen\" goal",
+        "_targetElement": {
+          "tag": "button",
+          "text": "Save time in the kitchen",
+          "identifier": "button[data-testid=\"goalsQuiz-saveTime\"][role=\"checkbox\"]"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (275, 332) - Selecting \"Save time in the kitchen\" goal",
+      "timestamp": "2026-01-06T17:43:32.642Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "button",
+        "text": "Save time in the kitchen",
+        "identifier": "button[data-testid=\"goalsQuiz-saveTime\"][role=\"checkbox\"]"
+      }
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 748,
+        "y": 268,
+        "description": "Selecting \"Eat more protein\" goal",
+        "_targetElement": {
+          "tag": "button",
+          "text": "Eat more protein",
+          "identifier": "button[data-testid=\"goalsQuiz-highProtein\"][role=\"checkbox\"]"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (748, 268) - Selecting \"Eat more protein\" goal",
+      "timestamp": "2026-01-06T17:43:38.638Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "button",
+        "text": "Eat more protein",
+        "identifier": "button[data-testid=\"goalsQuiz-highProtein\"][role=\"checkbox\"]"
+      }
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 511,
+        "y": 464,
+        "description": "Continue button after selecting goals",
+        "_targetElement": {
+          "tag": "span",
+          "text": "Continue",
+          "identifier": "span"
+        },
+        "_detectedChange": "url"
+      },
+      "description": "AI Action: click at (511, 464) - Continue button after selecting goals",
+      "timestamp": "2026-01-06T17:43:44.076Z",
+      "status": "success",
+      "expectedChange": "url",
+      "expectedElement": {
+        "tag": "span",
+        "text": "Continue",
+        "identifier": "span"
+      }
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 511,
+        "y": 588,
+        "description": "Continue button after meal preference selection",
+        "_targetElement": {
+          "tag": "span",
+          "text": "Continue",
+          "identifier": "span"
+        },
+        "_detectedChange": "url"
+      },
+      "description": "AI Action: click at (511, 588) - Continue button after meal preference selection",
+      "timestamp": "2026-01-06T17:43:51.613Z",
+      "status": "success",
+      "expectedChange": "url",
+      "expectedElement": {
+        "tag": "span",
+        "text": "Continue",
+        "identifier": "span"
+      }
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 511,
+        "y": 534,
+        "description": "Continue button on protein avoidance page",
+        "_targetElement": {
+          "tag": "span",
+          "text": "Continue",
+          "identifier": "span"
+        },
+        "_detectedChange": "url"
+      },
+      "description": "AI Action: click at (511, 534) - Continue button on protein avoidance page",
+      "timestamp": "2026-01-06T17:43:59.842Z",
+      "status": "success",
+      "expectedChange": "url",
+      "expectedElement": {
+        "tag": "span",
+        "text": "Continue",
+        "identifier": "span"
+      }
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 511,
+        "y": 450,
+        "description": "Continue button on ingredient avoidance page",
+        "_targetElement": {
+          "tag": "span",
+          "text": "Continue",
+          "identifier": "span"
+        },
+        "_detectedChange": "url"
+      },
+      "description": "AI Action: click at (511, 450) - Continue button on ingredient avoidance page",
+      "timestamp": "2026-01-06T17:44:05.596Z",
+      "status": "success",
+      "expectedChange": "url",
+      "expectedElement": {
+        "tag": "span",
+        "text": "Continue",
+        "identifier": "span"
+      }
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 749,
+        "y": 297,
+        "description": "Selecting \"Two of us\" option",
+        "_targetElement": {
+          "tag": "div",
+          "text": "div",
+          "identifier": "div"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (749, 297) - Selecting \"Two of us\" option",
+      "timestamp": "2026-01-06T17:44:12.221Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "div",
+        "text": "div",
+        "identifier": "div"
+      }
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 511,
+        "y": 504,
+        "description": "Continue button after selecting \"Two of us\"",
+        "_targetElement": {
+          "tag": "span",
+          "text": "Continue",
+          "identifier": "span"
+        },
+        "_detectedChange": "url"
+      },
+      "description": "AI Action: click at (511, 504) - Continue button after selecting \"Two of us\"",
+      "timestamp": "2026-01-06T17:44:17.995Z",
+      "status": "success",
+      "expectedChange": "url",
+      "expectedElement": {
+        "tag": "span",
+        "text": "Continue",
+        "identifier": "span"
+      }
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 748,
+        "y": 294,
+        "description": "Selecting \"Both lunch and dinner\" option",
+        "_targetElement": {
+          "tag": "div",
+          "text": "div",
+          "identifier": "div"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (748, 294) - Selecting \"Both lunch and dinner\" option",
+      "timestamp": "2026-01-06T17:44:24.370Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "div",
+        "text": "div",
+        "identifier": "div"
+      }
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 511,
+        "y": 504,
+        "description": "Continue button after selecting meals per day",
+        "_targetElement": {
+          "tag": "span",
+          "text": "Continue",
+          "identifier": "span"
+        },
+        "_detectedChange": "url"
+      },
+      "description": "AI Action: click at (511, 504) - Continue button after selecting meals per day",
+      "timestamp": "2026-01-06T17:44:29.558Z",
+      "status": "success",
+      "expectedChange": "url",
+      "expectedElement": {
+        "tag": "span",
+        "text": "Continue",
+        "identifier": "span"
+      }
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 748,
+        "y": 294,
+        "description": "Selecting \"3 days\" option",
+        "_targetElement": {
+          "tag": "div",
+          "text": "div",
+          "identifier": "div"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (748, 294) - Selecting \"3 days\" option",
+      "timestamp": "2026-01-06T17:44:35.518Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "div",
+        "text": "div",
+        "identifier": "div"
+      }
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 511,
+        "y": 504,
+        "description": "Continue button after selecting days per week",
+        "_targetElement": {
+          "tag": "span",
+          "text": "Continue",
+          "identifier": "span"
+        },
+        "_detectedChange": "url"
+      },
+      "description": "AI Action: click at (511, 504) - Continue button after selecting days per week",
+      "timestamp": "2026-01-06T17:44:40.714Z",
+      "status": "success",
+      "expectedChange": "url",
+      "expectedElement": {
+        "tag": "span",
+        "text": "Continue",
+        "identifier": "span"
+      }
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 511,
+        "y": 544,
+        "description": "Continue button with 12 meal plan selected",
+        "_targetElement": {
+          "tag": "span",
+          "text": "Continue",
+          "identifier": "span"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (511, 544) - Continue button with 12 meal plan selected",
+      "timestamp": "2026-01-06T17:44:48.822Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "span",
+        "text": "Continue",
+        "identifier": "span"
+      }
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 712,
+        "y": 279,
+        "description": "Email input field",
+        "_targetElement": {
+          "tag": "input",
+          "text": "Email",
+          "identifier": "input#feature.registration-steps-form-group-username-input[name=\"username\"][role=\"textbox\"]"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (712, 279) - Email input field",
+      "timestamp": "2026-01-06T17:44:56.055Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "input",
+        "text": "Email",
+        "identifier": "input#feature.registration-steps-form-group-username-input[name=\"username\"][role=\"textbox\"]"
+      }
+    },
+    {
+      "type": "type_text",
+      "params": {
+        "text": "{{dynamicEmail}}"
+      },
+      "description": "AI Action: type \"jordan.mcinnis+jan6558946@hellofresh.ca\"",
+      "timestamp": "2026-01-06T17:45:01.439Z",
+      "status": "success"
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 712,
+        "y": 343,
+        "description": "Continue button after entering email",
+        "_targetElement": {
+          "tag": "span",
+          "text": "Continue",
+          "identifier": "span"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (712, 343) - Continue button after entering email",
+      "timestamp": "2026-01-06T17:45:07.041Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "span",
+        "text": "Continue",
+        "identifier": "span"
+      }
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 712,
+        "y": 382,
+        "description": "Password input field",
+        "_targetElement": {
+          "tag": "input",
+          "text": "Choose a password",
+          "identifier": "input#feature.registration-steps-form-group-password-input[name=\"password\"][role=\"textbox\"]"
+        },
+        "_detectedChange": "none"
+      },
+      "description": "AI Action: click at (712, 382) - Password input field",
+      "timestamp": "2026-01-06T17:45:16.783Z",
+      "status": "success",
+      "expectedChange": "none",
+      "expectedElement": {
+        "tag": "input",
+        "text": "Choose a password",
+        "identifier": "input#feature.registration-steps-form-group-password-input[name=\"password\"][role=\"textbox\"]"
+      }
+    },
+    {
+      "type": "type_text",
+      "params": {
+        "text": "password"
+      },
+      "description": "AI Action: type \"password\"",
+      "timestamp": "2026-01-06T17:45:21.879Z",
+      "status": "success"
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 711,
+        "y": 515,
+        "description": "Continue button after entering password",
+        "_targetElement": {
+          "tag": "span",
+          "text": "Continue",
+          "identifier": "span"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (711, 515) - Continue button after entering password",
+      "timestamp": "2026-01-06T17:45:28.444Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "span",
+        "text": "Continue",
+        "identifier": "span"
+      }
+    },
+    {
+      "type": "random_wait",
+      "params": {
+        "min": 2000,
+        "max": 3000
+      },
+      "description": "AI Action: random_wait",
+      "timestamp": "2026-01-06T17:45:43.150Z",
+      "status": "success"
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 512,
+        "y": 256,
+        "description": "First Name input field",
+        "_targetElement": {
+          "tag": "fieldset",
+          "text": "First name *Last name *Street *Address line 2City ",
+          "identifier": "fieldset"
+        },
+        "_detectedChange": "none"
+      },
+      "description": "AI Action: click at (512, 256) - First Name input field",
+      "timestamp": "2026-01-06T17:45:52.751Z",
+      "status": "success",
+      "expectedChange": "none",
+      "expectedElement": {
+        "tag": "fieldset",
+        "text": "First name *Last name *Street *Address line 2City ",
+        "identifier": "fieldset"
+      }
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 302,
+        "y": 220,
+        "description": "First Name input field",
+        "_targetElement": {
+          "tag": "input",
+          "text": "First name ",
+          "identifier": "input#firstName[name=\"firstName\"][role=\"textbox\"]"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (302, 220) - First Name input field",
+      "timestamp": "2026-01-06T17:45:58.760Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "input",
+        "text": "First name ",
+        "identifier": "input#firstName[name=\"firstName\"][role=\"textbox\"]"
+      }
+    },
+    {
+      "type": "type_text",
+      "params": {
+        "text": "Jordan"
+      },
+      "description": "AI Action: type \"Jordan\"",
+      "timestamp": "2026-01-06T17:46:03.725Z",
+      "status": "success"
+    },
+    {
+      "type": "press_key",
+      "params": {
+        "key": "Tab"
+      },
+      "description": "AI Action: press_key",
+      "timestamp": "2026-01-06T17:46:09.032Z",
+      "status": "success"
+    },
+    {
+      "type": "type_text",
+      "params": {
+        "text": "McInnis"
+      },
+      "description": "AI Action: type \"McInnis\"",
+      "timestamp": "2026-01-06T17:46:13.997Z",
+      "status": "success"
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 302,
+        "y": 280,
+        "description": "Street address input field",
+        "_targetElement": {
+          "tag": "input",
+          "text": "Street ",
+          "identifier": "input#address1[name=\"address1\"][role=\"textbox\"]"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (302, 280) - Street address input field",
+      "timestamp": "2026-01-06T17:46:20.546Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "input",
+        "text": "Street ",
+        "identifier": "input#address1[name=\"address1\"][role=\"textbox\"]"
+      }
+    },
+    {
+      "type": "type_text",
+      "params": {
+        "text": "123 Broadway Street"
+      },
+      "description": "AI Action: type \"123 Broadway Street\"",
+      "timestamp": "2026-01-06T17:46:26.403Z",
+      "status": "success"
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 305,
+        "y": 321,
+        "description": "First address suggestion",
+        "_targetElement": {
+          "tag": "span",
+          "text": "Chicago IL 60653 - 3 Addresses",
+          "identifier": "span"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (305, 321) - First address suggestion",
+      "timestamp": "2026-01-06T17:46:34.064Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "span",
+        "text": "Chicago IL 60653 - 3 Addresses",
+        "identifier": "span"
+      }
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 227,
+        "y": 320,
+        "description": "First specific address suggestion - 123 E 37th St Apt 1",
+        "_targetElement": {
+          "tag": "span",
+          "text": "Chicago IL 60653-1647",
+          "identifier": "span"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (227, 320) - First specific address suggestion - 123 E 37th St Apt 1",
+      "timestamp": "2026-01-06T17:46:40.707Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "span",
+        "text": "Chicago IL 60653-1647",
+        "identifier": "span"
+      }
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 232,
+        "y": 340,
+        "description": "City input field",
+        "_targetElement": {
+          "tag": "input",
+          "text": "City ",
+          "identifier": "input#city[name=\"city\"][role=\"textbox\"]"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (232, 340) - City input field",
+      "timestamp": "2026-01-06T17:46:48.301Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "input",
+        "text": "City ",
+        "identifier": "input#city[name=\"city\"][role=\"textbox\"]"
+      }
+    },
+    {
+      "type": "press_key",
+      "params": {
+        "key": "Control+a"
+      },
+      "description": "AI Action: press_key",
+      "timestamp": "2026-01-06T17:46:53.712Z",
+      "status": "success"
+    },
+    {
+      "type": "type_text",
+      "params": {
+        "text": "New York"
+      },
+      "description": "AI Action: type \"New York\"",
+      "timestamp": "2026-01-06T17:46:59.177Z",
+      "status": "success"
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 232,
+        "y": 340,
+        "description": "City input field to fix the text",
+        "_targetElement": {
+          "tag": "input",
+          "text": "City ",
+          "identifier": "input#city[name=\"city\"][role=\"textbox\"]"
+        },
+        "_detectedChange": "none"
+      },
+      "description": "AI Action: click at (232, 340) - City input field to fix the text",
+      "timestamp": "2026-01-06T17:47:08.693Z",
+      "status": "success",
+      "expectedChange": "none",
+      "expectedElement": {
+        "tag": "input",
+        "text": "City ",
+        "identifier": "input#city[name=\"city\"][role=\"textbox\"]"
+      }
+    },
+    {
+      "type": "press_key",
+      "params": {
+        "key": "Control+a"
+      },
+      "description": "AI Action: press_key",
+      "timestamp": "2026-01-06T17:47:14.142Z",
+      "status": "success"
+    },
+    {
+      "type": "type_text",
+      "params": {
+        "text": "New York"
+      },
+      "description": "AI Action: type \"New York\"",
+      "timestamp": "2026-01-06T17:47:19.338Z",
+      "status": "success"
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 546,
+        "y": 340,
+        "description": "State dropdown to select New York",
+        "_targetElement": {
+          "tag": "button",
+          "text": "IllinoisSuccess",
+          "identifier": "button#downshift-0-toggle-button[role=\"combobox\"]"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (546, 340) - State dropdown to select New York",
+      "timestamp": "2026-01-06T17:47:25.792Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "button",
+        "text": "IllinoisSuccess",
+        "identifier": "button#downshift-0-toggle-button[role=\"combobox\"]"
+      }
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 425,
+        "y": 376,
+        "description": "New York option in state dropdown",
+        "_targetElement": {
+          "tag": "span",
+          "text": "New York",
+          "identifier": "span"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (425, 376) - New York option in state dropdown",
+      "timestamp": "2026-01-06T17:47:31.488Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "span",
+        "text": "New York",
+        "identifier": "span"
+      }
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 232,
+        "y": 341,
+        "description": "City input field to fix the text",
+        "_targetElement": {
+          "tag": "input",
+          "text": "City ",
+          "identifier": "input#city[name=\"city\"][role=\"textbox\"]"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (232, 341) - City input field to fix the text",
+      "timestamp": "2026-01-06T17:47:37.447Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "input",
+        "text": "City ",
+        "identifier": "input#city[name=\"city\"][role=\"textbox\"]"
+      }
+    },
+    {
+      "type": "press_key",
+      "params": {
+        "key": "Control+a"
+      },
+      "description": "AI Action: press_key",
+      "timestamp": "2026-01-06T17:47:42.561Z",
+      "status": "success"
+    },
+    {
+      "type": "type_text",
+      "params": {
+        "text": "New York"
+      },
+      "description": "AI Action: type \"New York\"",
+      "timestamp": "2026-01-06T17:47:47.813Z",
+      "status": "success"
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 512,
+        "y": 400,
+        "description": "Phone number input field",
+        "_targetElement": {
+          "tag": "input",
+          "text": "Phone Number ",
+          "identifier": "input#phone[name=\"phone\"][role=\"textbox\"]"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (512, 400) - Phone number input field",
+      "timestamp": "2026-01-06T17:47:53.575Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "input",
+        "text": "Phone Number ",
+        "identifier": "input#phone[name=\"phone\"][role=\"textbox\"]"
+      }
+    },
+    {
+      "type": "type_text",
+      "params": {
+        "text": "555-123-4567"
+      },
+      "description": "AI Action: type \"555-123-4567\"",
+      "timestamp": "2026-01-06T17:47:58.595Z",
+      "status": "success"
+    },
+    {
+      "type": "scroll",
+      "params": {
+        "direction": "down"
+      },
+      "description": "AI Action: scroll",
+      "timestamp": "2026-01-06T17:48:07.549Z",
+      "status": "success"
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 512,
+        "y": 648,
+        "description": "Next button to continue to payment",
+        "_targetElement": {
+          "tag": "span",
+          "text": "Next",
+          "identifier": "span"
+        },
+        "_detectedChange": "url"
+      },
+      "description": "AI Action: click at (512, 648) - Next button to continue to payment",
+      "timestamp": "2026-01-06T17:48:15.073Z",
+      "status": "success",
+      "expectedChange": "url",
+      "expectedElement": {
+        "tag": "span",
+        "text": "Next",
+        "identifier": "span"
+      }
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 511,
+        "y": 533,
+        "description": "Card number input field",
+        "_targetElement": {
+          "tag": "iframe",
+          "text": "iframe",
+          "identifier": "iframe#braintree-hosted-field-number[name=\"braintree-hosted-field-number\"]"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (511, 533) - Card number input field",
+      "timestamp": "2026-01-06T17:48:23.773Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "iframe",
+        "text": "iframe",
+        "identifier": "iframe#braintree-hosted-field-number[name=\"braintree-hosted-field-number\"]"
+      }
+    },
+    {
+      "type": "press_key",
+      "params": {
+        "key": "Home"
+      },
+      "description": "AI Action: press_key",
+      "timestamp": "2026-01-06T17:48:32.016Z",
+      "status": "success"
+    },
+    {
+      "type": "press_key",
+      "params": {
+        "key": "End"
+      },
+      "description": "AI Action: press_key",
+      "timestamp": "2026-01-06T17:48:38.161Z",
+      "status": "success"
+    },
+    {
+      "type": "scroll",
+      "params": {
+        "direction": "up"
+      },
+      "description": "AI Action: scroll",
+      "timestamp": "2026-01-06T17:48:45.733Z",
+      "status": "success"
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 312,
+        "y": 430,
+        "description": "Expiration date field",
+        "_targetElement": {
+          "tag": "iframe",
+          "text": "iframe",
+          "identifier": "iframe#braintree-hosted-field-expirationDate[name=\"braintree-hosted-field-expirationDate\"]"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (312, 430) - Expiration date field",
+      "timestamp": "2026-01-06T17:48:52.710Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "iframe",
+        "text": "iframe",
+        "identifier": "iframe#braintree-hosted-field-expirationDate[name=\"braintree-hosted-field-expirationDate\"]"
+      }
+    },
+    {
+      "type": "type_text",
+      "params": {
+        "text": "03/30"
+      },
+      "description": "AI Action: type \"03/30\"",
+      "timestamp": "2026-01-06T17:48:59.155Z",
+      "status": "success"
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 710,
+        "y": 462,
+        "description": "CVC code field",
+        "_targetElement": {
+          "tag": "iframe",
+          "text": "iframe",
+          "identifier": "iframe#braintree-hosted-field-cvv[name=\"braintree-hosted-field-cvv\"]"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (710, 462) - CVC code field",
+      "timestamp": "2026-01-06T17:49:06.024Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "iframe",
+        "text": "iframe",
+        "identifier": "iframe#braintree-hosted-field-cvv[name=\"braintree-hosted-field-cvv\"]"
+      }
+    },
+    {
+      "type": "type_text",
+      "params": {
+        "text": "737"
+      },
+      "description": "AI Action: type \"737\"",
+      "timestamp": "2026-01-06T17:49:15.831Z",
+      "status": "success"
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 512,
+        "y": 359,
+        "description": "Card number field to clear error",
+        "_targetElement": {
+          "tag": "iframe",
+          "text": "iframe",
+          "identifier": "iframe#braintree-hosted-field-number[name=\"braintree-hosted-field-number\"]"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (512, 359) - Card number field to clear error",
+      "timestamp": "2026-01-06T17:49:22.128Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "iframe",
+        "text": "iframe",
+        "identifier": "iframe#braintree-hosted-field-number[name=\"braintree-hosted-field-number\"]"
+      }
+    },
+    {
+      "type": "scroll",
+      "params": {
+        "direction": "down"
+      },
+      "description": "AI Action: scroll",
+      "timestamp": "2026-01-06T17:49:29.255Z",
+      "status": "success"
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 117,
+        "y": 525,
+        "description": "Terms and conditions checkbox",
+        "_targetElement": {
+          "tag": "input",
+          "text": "input",
+          "identifier": "input[name=\"checkbox-undefined\"][role=\"checkbox\"]"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (117, 525) - Terms and conditions checkbox",
+      "timestamp": "2026-01-06T17:49:37.069Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "input",
+        "text": "input",
+        "identifier": "input[name=\"checkbox-undefined\"][role=\"checkbox\"]"
+      }
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 512,
+        "y": 642,
+        "description": "Place order & select meals button",
+        "_targetElement": {
+          "tag": "span",
+          "text": "Place order & select meals",
+          "identifier": "span"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (512, 642) - Place order & select meals button",
+      "timestamp": "2026-01-06T17:49:44.116Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "span",
+        "text": "Place order & select meals",
+        "identifier": "span"
+      }
+    },
+    {
+      "type": "scroll",
+      "params": {
+        "direction": "up"
+      },
+      "description": "AI Action: scroll",
+      "timestamp": "2026-01-06T17:49:49.842Z",
+      "status": "success"
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 512,
+        "y": 359,
+        "description": "Card number input field",
+        "_targetElement": {
+          "tag": "iframe",
+          "text": "iframe",
+          "identifier": "iframe#braintree-hosted-field-number[name=\"braintree-hosted-field-number\"]"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (512, 359) - Card number input field",
+      "timestamp": "2026-01-06T17:49:56.099Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "iframe",
+        "text": "iframe",
+        "identifier": "iframe#braintree-hosted-field-number[name=\"braintree-hosted-field-number\"]"
+      }
+    },
+    {
+      "type": "press_key",
+      "params": {
+        "key": "Meta+a"
+      },
+      "description": "AI Action: press_key",
+      "timestamp": "2026-01-06T17:50:05.205Z",
+      "status": "success"
+    },
+    {
+      "type": "type_text",
+      "params": {
+        "text": "4111111111111111"
+      },
+      "description": "AI Action: type \"4111111111111111\"",
+      "timestamp": "2026-01-06T17:50:10.383Z",
+      "status": "success"
+    },
+    {
+      "type": "scroll",
+      "params": {
+        "direction": "down"
+      },
+      "description": "AI Action: scroll",
+      "timestamp": "2026-01-06T17:50:16.156Z",
+      "status": "success"
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 511,
+        "y": 611,
+        "description": "Place order & select meals button",
+        "_targetElement": {
+          "tag": "span",
+          "text": "Place order & select meals",
+          "identifier": "span"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (511, 611) - Place order & select meals button",
+      "timestamp": "2026-01-06T17:50:23.257Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "span",
+        "text": "Place order & select meals",
+        "identifier": "span"
+      }
+    },
+    {
+      "type": "random_wait",
+      "params": {
+        "min": 3000,
+        "max": 5000
+      },
+      "description": "AI Action: random_wait",
+      "timestamp": "2026-01-06T17:50:33.982Z",
+      "status": "success"
+    },
+    {
+      "type": "scroll",
+      "params": {
+        "direction": "down",
+        "amount": 0
+      },
+      "description": "AI Action: scroll",
+      "timestamp": "2026-01-06T17:50:38.581Z",
+      "status": "success"
+    },
+    {
+      "type": "wait",
+      "params": {
+        "duration": 2000
+      },
+      "description": "Final Wait",
+      "timestamp": "2026-01-06T17:50:50.700Z",
+      "status": "success"
+    }
+  ],
+  "lastUpdated": "2026-01-06T17:50:50.700Z",
+  "expiresAt": "2026-01-20T17:50:50.700Z"
+}

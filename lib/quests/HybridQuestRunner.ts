@@ -21,6 +21,7 @@ import { BedrockService } from '../services/bedrock';
 import { BrowserService } from '../services/browser';
 import { ValidationService } from '../services/validation';
 import { ContextService } from '../services/context';
+import { QUEST_RUNNER_MODEL_ID } from '../constants';
 
 // Sliding window size for message history (keeps system prompt + last N messages)
 // Trade-off: Higher = more context for AI, but more tokens. Lower = faster/cheaper, but less context.
@@ -46,7 +47,7 @@ export class HybridQuestRunner {
     this.bedrockService = new BedrockService();
     this.browserService = new BrowserService();
     this.contextService = new ContextService();
-    this.modelId = 'eu.anthropic.claude-sonnet-4-20250514-v1:0'; // Legacy model ID from original file
+    this.modelId = QUEST_RUNNER_MODEL_ID;
   }
 
   private log(message: string) {

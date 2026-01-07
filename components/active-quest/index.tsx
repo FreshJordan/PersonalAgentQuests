@@ -53,6 +53,7 @@ export const ActiveQuest: React.FC<ActiveQuestProps> = ({
   const [autoScroll, setAutoScroll] = useState(true);
   const [inputTokens, setInputTokens] = useState(0);
   const [outputTokens, setOutputTokens] = useState(0);
+  const [isFollowUpLoading, setIsFollowUpLoading] = useState(false);
 
   // Timer effect
   useEffect(() => {
@@ -156,6 +157,34 @@ export const ActiveQuest: React.FC<ActiveQuestProps> = ({
     } catch (e) {
       console.error(e);
       setError('Failed to start research phase');
+    }
+  };
+
+  const handleFollowUpSubmit = async (followUpMessage: string) => {
+    setIsFollowUpLoading(true);
+    setLogs((prev) => [...prev, `[User] ${followUpMessage}`]);
+
+    try {
+      const res = await fetch('/api/agent', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          query: instructions,
+          questId: questId,
+          selectedTickets,
+          followUpMessage,
+        }),
+      });
+
+      await streamResponse(res);
+      setIsFollowUpLoading(false);
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error(e);
+      setError('Failed to process follow-up message');
+      setIsFollowUpLoading(false);
     }
   };
 
@@ -367,7 +396,13 @@ export const ActiveQuest: React.FC<ActiveQuestProps> = ({
             />
           </div>
 
-          <AgentReport response={response} error={error} />
+          <AgentReport
+            response={response}
+            error={error}
+            showFollowUp={questId === 'jira-ticket-research' && !loading}
+            isFollowUpLoading={isFollowUpLoading}
+            onFollowUpSubmit={handleFollowUpSubmit}
+          />
         </div>
       )}
     </div>
