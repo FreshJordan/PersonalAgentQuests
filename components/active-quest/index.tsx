@@ -4,6 +4,7 @@ import { TicketSelector } from './TicketSelector';
 import { BrowserPreview } from './BrowserPreview';
 import { LiveLogs } from './LiveLogs';
 import { AgentReport } from './AgentReport';
+import { ClarificationModal } from './ClarificationModal';
 
 interface ActiveQuestProps {
   sessionId: string;
@@ -25,6 +26,14 @@ type QuestStatus =
   | 'success_ai'
   | 'success_script'
   | 'success_takeover';
+
+interface ClarificationQuestion {
+  id: string;
+  question: string;
+  options?: string[];
+  context?: string;
+  timestamp: number;
+}
 
 export const ActiveQuest: React.FC<ActiveQuestProps> = ({
   sessionId,
@@ -54,6 +63,9 @@ export const ActiveQuest: React.FC<ActiveQuestProps> = ({
   const [inputTokens, setInputTokens] = useState(0);
   const [outputTokens, setOutputTokens] = useState(0);
   const [isFollowUpLoading, setIsFollowUpLoading] = useState(false);
+  const [clarificationsEnabled, setClarificationsEnabled] = useState(false);
+  const [clarificationQuestion, setClarificationQuestion] =
+    useState<ClarificationQuestion | null>(null);
 
   // Timer effect
   useEffect(() => {
@@ -125,6 +137,8 @@ export const ActiveQuest: React.FC<ActiveQuestProps> = ({
               } else if (data.type === 'token_usage') {
                 setInputTokens((prev) => prev + (data.input || 0));
                 setOutputTokens((prev) => prev + (data.output || 0));
+              } else if (data.type === 'clarification_request') {
+                setClarificationQuestion(data.question);
               }
             } catch (e) {
               console.error(e);
@@ -150,6 +164,7 @@ export const ActiveQuest: React.FC<ActiveQuestProps> = ({
           query: instructions,
           questId: questId,
           selectedTickets,
+          clarificationsEnabled,
         }),
       });
 
@@ -185,6 +200,30 @@ export const ActiveQuest: React.FC<ActiveQuestProps> = ({
       console.error(e);
       setError('Failed to process follow-up message');
       setIsFollowUpLoading(false);
+    }
+  };
+
+  const handleClarificationSubmit = async (answer: string) => {
+    if (!clarificationQuestion) return;
+
+    setLogs((prev) => [...prev, `[User Answer] ${answer}`]);
+    setClarificationQuestion(null);
+
+    try {
+      await fetch('/api/clarification', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          questionId: clarificationQuestion.id,
+          answer,
+        }),
+      });
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error('Failed to submit clarification answer:', e);
+      setError('Failed to submit clarification answer');
     }
   };
 
@@ -280,6 +319,8 @@ export const ActiveQuest: React.FC<ActiveQuestProps> = ({
                   } else if (data.type === 'token_usage') {
                     setInputTokens((prev) => prev + (data.input || 0));
                     setOutputTokens((prev) => prev + (data.output || 0));
+                  } else if (data.type === 'clarification_request') {
+                    setClarificationQuestion(data.question);
                   } else if (data.type === 'result') {
                     setResponse(data.text);
                   } else if (data.type === 'error') {
@@ -376,6 +417,9 @@ export const ActiveQuest: React.FC<ActiveQuestProps> = ({
                 selectedTickets={selectedTickets}
                 onSelectTicket={(key) => setSelectedTickets([key])}
                 onResearch={handleResearchSelected}
+                supportsClarifications={questId === 'jira-ticket-research'}
+                clarificationsEnabled={clarificationsEnabled}
+                onClarificationsChange={setClarificationsEnabled}
               />
             )}
 
@@ -404,6 +448,20 @@ export const ActiveQuest: React.FC<ActiveQuestProps> = ({
             onFollowUpSubmit={handleFollowUpSubmit}
           />
         </div>
+      )}
+
+      {clarificationQuestion && (
+        <ClarificationModal
+          question={clarificationQuestion}
+          onSubmit={handleClarificationSubmit}
+          onClose={() => {
+            setLogs((prev) => [
+              ...prev,
+              '[System] Clarification timeout - agent will use its discretion',
+            ]);
+            setClarificationQuestion(null);
+          }}
+        />
       )}
     </div>
   );

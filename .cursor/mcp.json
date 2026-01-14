@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "clarifications": {
+      "command": "node",
+      "args": [
+        "mcp-server/dist/index.js"
+      ],
+      "env": {
+        "PORT": "3002",
+        "QUESTION_DIR": ".agent-questions"
+      },
+      "disabled": false,
+      "alwaysAllow": []
+    }
+  }
+}

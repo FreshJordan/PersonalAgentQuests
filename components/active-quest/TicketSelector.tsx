@@ -5,6 +5,9 @@ interface TicketSelectorProps {
   selectedTickets: string[];
   onSelectTicket: (key: string) => void;
   onResearch: () => void;
+  supportsClarifications?: boolean;
+  clarificationsEnabled: boolean;
+  onClarificationsChange: (enabled: boolean) => void;
 }
 
 export const TicketSelector: React.FC<TicketSelectorProps> = ({
@@ -12,6 +15,9 @@ export const TicketSelector: React.FC<TicketSelectorProps> = ({
   selectedTickets,
   onSelectTicket,
   onResearch,
+  supportsClarifications = false,
+  clarificationsEnabled,
+  onClarificationsChange,
 }) => {
   return (
     <div
@@ -84,6 +90,53 @@ export const TicketSelector: React.FC<TicketSelectorProps> = ({
           </div>
         ))}
       </div>
+
+      {supportsClarifications && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '12px',
+            backgroundColor: '#fff8e1',
+            border: '1px solid #ffe082',
+            borderRadius: '6px',
+            marginBottom: '15px',
+          }}
+        >
+          <input
+            type="checkbox"
+            id="enable-clarifications"
+            checked={clarificationsEnabled}
+            onChange={(e) => onClarificationsChange(e.target.checked)}
+            style={{
+              width: '18px',
+              height: '18px',
+              cursor: 'pointer',
+            }}
+          />
+          <label
+            htmlFor="enable-clarifications"
+            style={{
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: '500',
+              flex: 1,
+            }}
+          >
+            💬 Ask for Clarification
+          </label>
+          <span
+            style={{
+              fontSize: '12px',
+              color: '#656d76',
+            }}
+          >
+            (Agent can pause and ask questions during execution)
+          </span>
+        </div>
+      )}
+
       <div
         style={{
           display: 'flex',

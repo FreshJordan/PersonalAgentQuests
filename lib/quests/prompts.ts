@@ -134,3 +134,151 @@ GUIDELINES:
    - Prefer text-based selectors for buttons and links: "text=Sign Up" or "button:has-text('Continue')".
    - Use stable attributes if available: "[data-testid='submit']", "id='email'", or "name='password'".
    - Avoid brittle selectors based on long chains (div > div > span) or dynamic classes.`;
+
+/**
+ * Clarifications section for JIRA ticket implementation when interactive clarifications are enabled
+ */
+export const CLARIFICATIONS_SECTION = `
+## 💬 INTERACTIVE CLARIFICATIONS ENABLED
+
+**IMPORTANT**: You have direct access to the user via the \`ask_clarification\` tool. Use it proactively!
+
+### ⚠️ When You SHOULD Ask (Don't Guess!)
+
+**Always ask for clarification** when you encounter ANY of the following:
+
+1. **Ambiguous or Vague Requirements**
+   - ❌ "Update the form" - Which form? Which fields?
+   - ❌ "Improve the UI" - What specific improvements?
+   - ❌ "Fix the bug" - Which behavior is correct?
+
+2. **Missing Specifications**
+   - No error messages specified
+   - No styling/color/layout guidance
+   - Unclear scope or boundaries
+   - No edge case handling defined
+
+3. **Multiple Valid Approaches**
+   - Should I create a new component or modify existing?
+   - Client-side or server-side solution?
+   - Which existing pattern should I follow?
+
+4. **Assumptions You're About To Make**
+   - "I assume the user wants X because..."
+   - "It looks like this should be Y, but..."
+   - "The ticket doesn't mention Z, so I'm planning to..."
+   - **→ STOP and confirm your assumption with ask_clarification!**
+
+5. **Design or Implementation Decisions**
+   - Component naming conventions
+   - Where to place new files
+   - Which library/approach to use
+   - Breaking changes or refactors
+
+6. **Anything Not Explicitly Stated**
+   - If the ticket doesn't explicitly say it, ask!
+   - Better to over-communicate than under-deliver
+
+### How to Use the Tool
+
+\`\`\`typescript
+// Multiple choice - preferred when you have options
+const answer = await ask_clarification({
+  question: "Which form should I update with this validation?",
+  options: ["UserProfileForm", "SettingsForm", "CheckoutForm"],
+  context: "Found 3 forms, ticket just says 'the form'"
+});
+
+// Open-ended - for specifications and details
+const answer = await ask_clarification({
+  question: "What error message should be shown when validation fails?",
+  context: "Ticket specifies logic but not user-facing message"
+});
+
+// Confirming assumptions
+const answer = await ask_clarification({
+  question: "Should I create a new PhoneInput component or add to UserProfileForm?",
+  options: ["New component (more reusable)", "Add to existing form (simpler)"],
+  context: "Ticket doesn't specify. Current form has 8 fields already."
+});
+\`\`\`
+
+### Best Practices
+
+- **Ask Early & Often**: Don't wait - ask during planning before writing code
+- **Don't Guess**: If you're about to make an assumption, ask first
+- **Be Specific**: Provide context and options when possible
+- **Confirm Ambiguities**: Even if you think you know what they want, confirm it
+- **Timeout = Your Call**: Questions timeout after ~25 seconds - then use your best judgment
+
+**Remember**: A 30-second clarification is better than 30 minutes of wrong implementation!
+
+---
+`;
+
+/**
+ * Enhanced execution plan steps when clarifications are enabled
+ */
+export const CLARIFICATIONS_ANALYZE_STEP = `   - **Identify ambiguities**: Look for anything vague, missing, or not explicitly stated
+   - **Before making assumptions**: Use \`ask_clarification\` to confirm your understanding
+   - **Ask about**: Specific files/components to modify, error messages, styling, naming, scope, edge cases
+   - **Don't guess**: If the ticket doesn't explicitly state something you need to know, ask!`;
+
+export const CLARIFICATIONS_IMPLEMENT_REMINDER = `   - **Stop and ask** if you discover ambiguities or need to make assumptions about requirements.`;
+
+/**
+ * Generates JIRA ticket implementation instructions
+ */
+export function generateJiraTicketInstructions(
+  ticketKey: string,
+  ticketSummary: string,
+  descriptionText: string,
+  commentsText: string,
+  clarificationsEnabled: boolean
+): string {
+  return `# PRIMARY OBJECTIVE: ${ticketKey} - ${ticketSummary}
+
+## CRITICAL: TICKET REQUIREMENTS
+The following description is the ABSOLUTE SOURCE OF TRUTH for this task. You must implement ALL requirements specified here exactly as written.
+Pay special attention to any acceptance criteria (A/C), specific file paths, or design constraints mentioned.
+
+${descriptionText}
+
+## ADDITIONAL CONTEXT (Comments Summary)
+${commentsText}
+
+${clarificationsEnabled ? CLARIFICATIONS_SECTION : ''}
+
+## EXECUTION PLAN
+You are an expert engineer tasked with completing the above objective. Your priority is to satisfy the TICKET REQUIREMENTS${
+    clarificationsEnabled
+      ? ". **Use the ask_clarification tool whenever something is ambiguous or not explicitly stated** - don't make assumptions"
+      : ''
+  }.
+
+1. **Analyze & Plan**${
+    clarificationsEnabled ? ' (Ask questions before implementing!)' : ''
+  }:
+   - Read the TICKET REQUIREMENTS above carefully.
+   - Identify which files need to be modified.
+   - If the ticket implies deprecated files or patterns, identify them.
+${clarificationsEnabled ? CLARIFICATIONS_ANALYZE_STEP : ''}
+
+2. **Implement**${
+    clarificationsEnabled ? ' (Confirm assumptions as needed)' : ''
+  }:
+   - Apply the necessary code changes to fulfill the TICKET REQUIREMENTS.
+   - **Priority**: The specific instructions in the ticket description OVERRIDE general patterns if there is a conflict.
+${clarificationsEnabled ? CLARIFICATIONS_IMPLEMENT_REMINDER : ''}
+
+3. **Verify (Mandatory)**:
+   - **Linting**: Check for and fix any linter errors in the files you modified.
+   - **Testing**: Run relevant unit tests to ensure your changes didn't break existing functionality. Fix any failures.
+   - **Deprecations**: Ensure you haven't introduced usage of deprecated components unless explicitly required by the ticket.
+
+4. **Finalize**:
+   - Create a git commit with the changes using the message: "[Cursor_Code] Implementation for ${ticketKey}"
+   - **VERY IMPORTANT**: Do NOT push changes to origin. All changes must remain local.
+   - Leave the codebase in a clean, working state with your changes applied.
+`;
+}

@@ -7,6 +7,8 @@ import { JiraService } from '../services/jira';
 import { BedrockService } from '../services/bedrock';
 import { GitService } from '../services/git';
 import { CursorAgentService } from '../services/cursor';
+import { MCPManager, ClarificationQuestion } from '../services/mcp-manager';
+import { generateJiraTicketInstructions } from './prompts';
 
 // Context optimization: Keep last N exchanges (user + assistant pairs)
 const MAX_CONVERSATION_HISTORY = 10;
@@ -18,18 +20,64 @@ export class JiraQuestRunner {
   private cursorService: CursorAgentService;
   private eventCallback: (event: AgentEvent) => void;
   private conversationHistory: Array<{ role: string; content: any }> = [];
-  private currentTicketContext: string = '';
+  private currentTicketContext = '';
+  private mcpManager: MCPManager | null = null;
+  private clarificationsEnabled = false;
 
-  constructor(eventCallback: (event: AgentEvent) => void) {
+  constructor(
+    eventCallback: (event: AgentEvent) => void,
+    clarificationsEnabled = false
+  ) {
     this.eventCallback = eventCallback;
+    this.clarificationsEnabled = clarificationsEnabled;
     this.jiraService = new JiraService();
     this.bedrockService = new BedrockService();
     this.gitService = new GitService();
     this.cursorService = new CursorAgentService();
+
+    // Initialize MCP Manager if clarifications enabled
+    if (clarificationsEnabled) {
+      // Use PersonalAgentQuests directory as root (where .agent-questions will be created)
+      const workspaceRoot = process.cwd();
+      this.mcpManager = new MCPManager(workspaceRoot);
+
+      // Listen for clarification questions
+      this.mcpManager.onQuestion((question) => {
+        this.handleClarificationQuestion(question);
+      });
+    }
   }
 
   private log(message: string) {
     this.eventCallback({ type: 'log', message: `[JiraRunner] ${message}` });
+  }
+
+  /**
+   * Handles a clarification question from the MCP server
+   */
+  private handleClarificationQuestion(question: ClarificationQuestion) {
+    this.log(`Clarification question received: ${question.id}`);
+
+    // Send question to UI via event
+    this.eventCallback({
+      type: 'clarification_request',
+      question,
+    });
+  }
+
+  /**
+   * Submits an answer to a clarification question
+   */
+  public async submitClarificationAnswer(
+    questionId: string,
+    answer: string
+  ): Promise<void> {
+    if (!this.mcpManager) {
+      throw new Error('MCP Manager not initialized');
+    }
+
+    this.log(`Submitting answer for question ${questionId}`);
+    await this.mcpManager.submitAnswer(questionId, answer);
   }
 
   /**
@@ -44,10 +92,12 @@ export class JiraQuestRunner {
     }
 
     const toRemove = this.conversationHistory.length - maxMessages;
-    const removed = this.conversationHistory.splice(0, toRemove);
+    this.conversationHistory.splice(0, toRemove);
 
     this.log(
-      `Context optimization: Trimmed ${toRemove} old messages (${toRemove / 2} exchanges)`
+      `Context optimization: Trimmed ${toRemove} old messages (${
+        toRemove / 2
+      } exchanges)`
     );
 
     // Add summary message to maintain context continuity
@@ -56,7 +106,9 @@ export class JiraQuestRunner {
       content: [
         {
           type: 'text',
-          text: `[Note: Earlier conversation trimmed - ${toRemove / 2} previous exchanges removed to optimize context size]`,
+          text: `[Note: Earlier conversation trimmed - ${
+            toRemove / 2
+          } previous exchanges removed to optimize context size]`,
         },
       ],
     });
@@ -88,7 +140,9 @@ export class JiraQuestRunner {
 
     const estimatedTokens = Math.round(context.length / 4); // Rough estimate: 1 token ≈ 4 chars
     this.log(
-      `Context size: ~${Math.round(context.length / 1000)}KB, ~${estimatedTokens} tokens`
+      `Context size: ~${Math.round(
+        context.length / 1000
+      )}KB, ~${estimatedTokens} tokens`
     );
 
     return context;
@@ -219,44 +273,39 @@ export class JiraQuestRunner {
 
         // --- Trigger Cursor CLI ---
         try {
+          // Start watching for clarifications if enabled
+          // Note: MCP server is automatically started by Cursor CLI via .cursormcp config
+          if (this.mcpManager) {
+            this.log('Starting clarification watcher...');
+            this.mcpManager.startWatching();
+          }
+
           const branchName = `feature/${ticket.key}`;
           this.log(`Checking out git branch: ${branchName}`);
           await this.gitService.checkoutBranch(branchName);
 
-          const instructions = `
-# PRIMARY OBJECTIVE: ${ticket.key} - ${ticket.fields.summary}
+          this.log(
+            `Clarifications ${
+              this.clarificationsEnabled ? 'ENABLED ✓' : 'disabled'
+            }`
+          );
 
-## CRITICAL: TICKET REQUIREMENTS
-The following description is the ABSOLUTE SOURCE OF TRUTH for this task. You must implement ALL requirements specified here exactly as written.
-Pay special attention to any acceptance criteria (A/C), specific file paths, or design constraints mentioned.
+          const instructions = generateJiraTicketInstructions(
+            ticket.key,
+            ticket.fields.summary,
+            descriptionText,
+            commentsText,
+            this.clarificationsEnabled
+          );
 
-${descriptionText}
+          // Log first 500 chars of instructions for debugging
+          this.log(
+            `Generated instructions (first 500 chars): ${instructions.substring(
+              0,
+              500
+            )}...`
+          );
 
-## ADDITIONAL CONTEXT (Comments Summary)
-${commentsText}
-
-## EXECUTION PLAN
-You are an expert engineer tasked with completing the above objective. Your priority is to satisfy the TICKET REQUIREMENTS.
-
-1. **Analyze & Plan**:
-   - Read the TICKET REQUIREMENTS above carefully.
-   - Identify which files need to be modified.
-   - If the ticket implies deprecated files or patterns, identify them.
-
-2. **Implement**:
-   - Apply the necessary code changes to fulfill the TICKET REQUIREMENTS.
-   - **Priority**: The specific instructions in the ticket description OVERRIDE general patterns if there is a conflict.
-
-3. **Verify (Mandatory)**:
-   - **Linting**: Check for and fix any linter errors in the files you modified.
-   - **Testing**: Run relevant unit tests to ensure your changes didn't break existing functionality. Fix any failures.
-   - **Deprecations**: Ensure you haven't introduced usage of deprecated components unless explicitly required by the ticket.
-
-4. **Finalize**:
-   - Create a git commit with the changes using the message: "[Cursor_Code] Implementation for ${ticket.key}"
-   - **VERY IMPORTANT**: Do NOT push changes to origin. All changes must remain local.
-   - Leave the codebase in a clean, working state with your changes applied.
-`;
           const instructionFile = `INSTRUCTIONS_${ticket.key}.md`;
           const instructionPath = path.resolve(
             process.cwd(),
@@ -265,6 +314,11 @@ You are an expert engineer tasked with completing the above objective. Your prio
           );
           fs.writeFileSync(instructionPath, instructions);
 
+          this.log(
+            `Instructions written to: ${instructionPath} (${Math.round(
+              instructions.length / 1024
+            )}KB)`
+          );
           this.log(`Triggering Cursor Headless CLI with ${instructionFile}...`);
 
           const fullOutput = await this.cursorService.runAgent(
@@ -311,6 +365,12 @@ You are an expert engineer tasked with completing the above objective. Your prio
               : String(cursorError);
           this.log(`Failed to trigger Cursor CLI: ${errorMsg}`);
           finalReport += `\n**Warning:** Failed to trigger Cursor CLI automatically.\n`;
+        } finally {
+          // Cleanup MCP watcher
+          if (this.mcpManager) {
+            this.log('Stopping clarification watcher...');
+            this.mcpManager.stopWatching();
+          }
         }
       }
 
@@ -344,7 +404,9 @@ You are an expert engineer tasked with completing the above objective. Your prio
       const conversationContext = this.buildOptimizedContextForCursor();
 
       // Create instruction file for Cursor CLI
-      const instructions = `# Follow-up Request for JIRA Tickets: ${ticketKeys.join(', ')}
+      const instructions = `# Follow-up Request for JIRA Tickets: ${ticketKeys.join(
+        ', '
+      )}
 
 ## CONTEXT
 You are helping with JIRA ticket research and implementation. Below is the conversation history so far.

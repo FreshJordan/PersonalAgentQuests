@@ -111,5 +111,6 @@ export type AgentEvent =
       tickets: { key: string; summary: string; description?: string | null }[];
     } // NEW: ticket selection
   | { type: 'token_usage'; input: number; output: number } // NEW: token usage
+  | { type: 'clarification_request'; question: any } // NEW: clarification question
   | { type: 'error'; message: string }
   | { type: 'done' };

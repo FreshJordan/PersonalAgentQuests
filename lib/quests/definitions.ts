@@ -10,9 +10,24 @@ export interface QuestDefinition {
     placeholder?: string;
     description?: string;
   };
+  supportsClarifications?: boolean; // Whether this quest supports interactive clarifications
 }
 
 export const QUESTS: QuestDefinition[] = [
+  {
+    id: 'youfoodz-registration',
+    name: 'Youfoodz Registration',
+    description:
+      'Navigates to Youfoodz staging, attempts to register with dynamic data, and completes the funnel.',
+    instructions: `
+1. Navigate to https://www-staging.youfoodz.com/plans
+2. Continue through the signup funnel, only selecting required information. If required to select something, choose randomly.
+4. When you get to the page asking for email/login details, enter a new email in accordance with new email rules, using 'password' as the password.
+5. Enter random delivery address information for australia, ignore validation unless it prevents you from progressing to the next step.
+5. Enter credit card details in accordance with credit card details provided in the system prompt. Progress to next step, doing anything else required.
+6. Once the account is created and there is some format of a 'welcome' message, this task is complete.
+    `.trim(),
+  },
   {
     id: 'hello-fresh-registration',
     name: 'Hello Fresh Registration',
@@ -66,6 +81,7 @@ export const QUESTS: QuestDefinition[] = [
     instructions:
       'Fetch all open tickets assigned to me. For each ticket, search the codebase for relevant files and generate a summary of how to start.',
     hideBrowser: true,
+    supportsClarifications: true,
     inputConfig: {
       label: 'Ticket Filter (Optional)',
       placeholder: 'SHA or SHA-123',
