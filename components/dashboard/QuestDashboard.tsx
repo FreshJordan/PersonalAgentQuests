@@ -69,10 +69,7 @@ export const QuestDashboard: React.FC<QuestDashboardProps> = ({
           marginBottom: '40px',
         }}
       >
-        <h1>Start a New Mission</h1>
-        <p style={{ color: '#666' }}>
-          Self-Healing Automation: Script Execution with AI Fallback
-        </p>
+        <h1>Start a New Quest</h1>
 
         <div
           style={{

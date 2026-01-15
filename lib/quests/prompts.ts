@@ -155,7 +155,7 @@ GUIDELINES:
 export const CLARIFICATIONS_SECTION = `
 ## 💬 INTERACTIVE CLARIFICATIONS ENABLED
 
-**IMPORTANT**: You have direct access to the user via the \`ask_clarification\` tool. Use it proactively!
+**IMPORTANT**: You have direct access to the user via the \`ask_clarification\` tool. Use it proactively! It is generally wise to ask the user at least one question.
 
 ### ⚠️ When You SHOULD Ask (Don't Guess!)
 
@@ -176,6 +176,7 @@ export const CLARIFICATIONS_SECTION = `
    - Should I create a new component or modify existing?
    - Client-side or server-side solution?
    - Which existing pattern should I follow?
+   - Should I hard this to false or delete the unnecessary code?
 
 4. **Assumptions You're About To Make**
    - "I assume the user wants X because..."

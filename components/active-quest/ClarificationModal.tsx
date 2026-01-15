@@ -24,16 +24,28 @@ export const ClarificationModal: React.FC<ClarificationModalProps> = ({
   const [answer, setAnswer] = useState('');
   const [selectedOption, setSelectedOption] = useState('');
   const [timeRemaining, setTimeRemaining] = useState(TIMEOUT_SECONDS);
+  const [hasAutoSubmitted, setHasAutoSubmitted] = useState(false);
 
-  // Auto-close timer
+  // Auto-select first option after timeout
+  useEffect(() => {
+    if (timeRemaining === 0 && !hasAutoSubmitted) {
+      setHasAutoSubmitted(true);
+      if (question.options && question.options.length > 0) {
+        // Auto-submit with the first option
+        onSubmit(question.options[0]);
+      } else if (onClose) {
+        // No options available, just close
+        onClose();
+      }
+    }
+  }, [timeRemaining, hasAutoSubmitted, question.options, onSubmit, onClose]);
+
+  // Countdown timer
   useEffect(() => {
     const timer = setInterval(() => {
       setTimeRemaining((prev) => {
-        if (prev <= 1) {
-          // Time's up - close the modal
-          if (onClose) {
-            onClose();
-          }
+        if (prev <= 0) {
+          clearInterval(timer);
           return 0;
         }
         return prev - 1;
@@ -41,7 +53,7 @@ export const ClarificationModal: React.FC<ClarificationModalProps> = ({
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [onClose]);
+  }, []);
 
   // Alert the user when modal appears
   useEffect(() => {
@@ -290,12 +302,21 @@ export const ClarificationModal: React.FC<ClarificationModalProps> = ({
           }}
         >
           ⏱️ Time remaining: {timeRemaining}s{' '}
-          {timeRemaining === 0 && '(closing...)'}
-          {timeRemaining > 0 && (
-            <span style={{ display: 'block', marginTop: '4px' }}>
-              If no answer is provided, the agent will use its discretion.
-            </span>
-          )}
+          {timeRemaining === 0 && '(auto-selecting...)'}
+          {timeRemaining > 0 &&
+            question.options &&
+            question.options.length > 0 && (
+              <span style={{ display: 'block', marginTop: '4px' }}>
+                First option &quot;{question.options[0]}&quot; will be
+                automatically selected if no answer is provided.
+              </span>
+            )}
+          {timeRemaining > 0 &&
+            (!question.options || question.options.length === 0) && (
+              <span style={{ display: 'block', marginTop: '4px' }}>
+                If no answer is provided, the agent will use its discretion.
+              </span>
+            )}
         </div>
       </div>
     </div>
