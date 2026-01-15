@@ -203,8 +203,17 @@ export class BrowserService {
           if (!el) return null;
 
           const tag = el.tagName.toLowerCase();
+
           // Get visible text (truncated for storage)
-          const text = (el.textContent || '').trim().slice(0, 50);
+          // For iframes, use name/title attribute instead of (useless) fallback text
+          let text: string;
+          if (tag === 'iframe') {
+            const iframeName = el.getAttribute('name') || '';
+            const iframeTitle = el.getAttribute('title') || '';
+            text = iframeTitle || iframeName || 'iframe';
+          } else {
+            text = (el.textContent || '').trim().slice(0, 50);
+          }
 
           // Build identifier from STABLE attributes only (not className which is often generated)
           const id = el.id ? `#${el.id}` : '';
@@ -254,6 +263,33 @@ export class BrowserService {
       };
     }
 
+    // IFRAME SPECIAL HANDLING: Iframes (payment forms) are inherently unreliable
+    // for text-based verification since they contain fallback text or cross-origin content
+    const isIframeInvolved =
+      expected.tag === 'iframe' || actual.tag === 'iframe';
+    if (isIframeInvolved) {
+      // If either element is an iframe and the other is a form-related element,
+      // consider it a match (handles label/input overlay cases)
+      const formRelatedTags = [
+        'input',
+        'label',
+        'span',
+        'div',
+        'iframe',
+        'button',
+      ];
+      if (
+        formRelatedTags.includes(actual.tag) &&
+        formRelatedTags.includes(expected.tag)
+      ) {
+        return {
+          matches: true,
+          actual: `${actual.tag}: "${actual.text}"`,
+          expected: `${expected.tag}: "${expected.text}"`,
+        };
+      }
+    }
+
     // 1. IDENTIFIER MATCH: Strongest signal - data-testid, id, name, role
     if (
       actual.identifier &&
@@ -290,7 +326,7 @@ export class BrowserService {
     const semanticGroups = [
       ['button', 'a', 'span', 'div'], // Clickable elements
       ['li', 'ul', 'ol', 'div', 'nav'], // List structures
-      ['input', 'label', 'span', 'div'], // Form elements
+      ['input', 'label', 'span', 'div', 'iframe'], // Form elements (iframe for payment forms)
       ['p', 'span', 'div', 'label'], // Text containers
       ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'div', 'span'], // Headings
       ['td', 'tr', 'th', 'div'], // Table elements

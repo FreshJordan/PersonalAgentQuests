@@ -1,0 +1,803 @@
+{
+  "id": "hellofresh-registration-staging-se",
+  "name": "hellofresh-registration-staging-se",
+  "description": "1. Navigate to https://www-staging.hellofresh.se/plans\n2. Continue through the signup funnel, only selecting required information. If required to select something, choose randomly.\n3. When you get to the page asking for email/login details, enter a new email in accordance with new email rules, using 'password' as the password.\n4. Enter random delivery address information for a major city within sweeden, ignore validation unless it prevents you from progressing to the next step.\n5. Enter credit card details in accordance with credit card details provided in the system prompt. Progress to next step, doing anything else required.\n6. Once the account is created and there is some format of a 'welcome' message, this task is complete.\n\nUseful SE Specific Information:\nValid Postal Code: 11115\nValid Address: 1 Alpbacken, Farsta",
+  "steps": [
+    {
+      "type": "navigate",
+      "params": {
+        "url": "https://www-staging.hellofresh.se/plans"
+      },
+      "description": "AI Action: navigate",
+      "timestamp": "2026-01-15T18:29:10.203Z",
+      "status": "success"
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 512,
+        "y": 483,
+        "description": "NEJ TACK button to stay on Swedish site",
+        "_targetElement": {
+          "tag": "span",
+          "text": "NEJ TACK",
+          "identifier": "span"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (512, 483) - NEJ TACK button to stay on Swedish site",
+      "timestamp": "2026-01-15T18:29:16.288Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "span",
+        "text": "NEJ TACK",
+        "identifier": "span"
+      }
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 512,
+        "y": 280,
+        "description": "Postal code input field",
+        "_targetElement": {
+          "tag": "input",
+          "text": "Skriv in ditt postnummer",
+          "identifier": "input#Skrivindittpostnummer[name=\"zipcode\"][role=\"textbox\"]"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (512, 280) - Postal code input field",
+      "timestamp": "2026-01-15T18:29:22.667Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "input",
+        "text": "Skriv in ditt postnummer",
+        "identifier": "input#Skrivindittpostnummer[name=\"zipcode\"][role=\"textbox\"]"
+      }
+    },
+    {
+      "type": "type_text",
+      "params": {
+        "text": "11115"
+      },
+      "description": "AI Action: type \"11115\"",
+      "timestamp": "2026-01-15T18:29:28.037Z",
+      "status": "success"
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 512,
+        "y": 665,
+        "description": "Fortsätt (Continue) button",
+        "_targetElement": {
+          "tag": "span",
+          "text": "Fortsätt",
+          "identifier": "span"
+        },
+        "_detectedChange": "url"
+      },
+      "description": "AI Action: click at (512, 665) - Fortsätt (Continue) button",
+      "timestamp": "2026-01-15T18:29:34.175Z",
+      "status": "success",
+      "expectedChange": "url",
+      "expectedElement": {
+        "tag": "span",
+        "text": "Fortsätt",
+        "identifier": "span"
+      }
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 653,
+        "y": 280,
+        "description": "Familjevänligt (Family-friendly) option",
+        "_targetElement": {
+          "tag": "div",
+          "text": "Familjevänligt",
+          "identifier": "div[role=\"checkbox\"]"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (653, 280) - Familjevänligt (Family-friendly) option",
+      "timestamp": "2026-01-15T18:29:42.228Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "div",
+        "text": "Familjevänligt",
+        "identifier": "div[role=\"checkbox\"]"
+      }
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 511,
+        "y": 595,
+        "description": "Fortsätt (Continue) button",
+        "_targetElement": {
+          "tag": "span",
+          "text": "Fortsätt",
+          "identifier": "span"
+        },
+        "_detectedChange": "url"
+      },
+      "description": "AI Action: click at (511, 595) - Fortsätt (Continue) button",
+      "timestamp": "2026-01-15T18:29:47.500Z",
+      "status": "success",
+      "expectedChange": "url",
+      "expectedElement": {
+        "tag": "span",
+        "text": "Fortsätt",
+        "identifier": "span"
+      }
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 511,
+        "y": 511,
+        "description": "Fortsätt (Continue) button",
+        "_targetElement": {
+          "tag": "span",
+          "text": "Fortsätt",
+          "identifier": "span"
+        },
+        "_detectedChange": "url"
+      },
+      "description": "AI Action: click at (511, 511) - Fortsätt (Continue) button",
+      "timestamp": "2026-01-15T18:29:54.546Z",
+      "status": "success",
+      "expectedChange": "url",
+      "expectedElement": {
+        "tag": "span",
+        "text": "Fortsätt",
+        "identifier": "span"
+      }
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 511,
+        "y": 721,
+        "description": "Fortsätt (Continue) button",
+        "_targetElement": {
+          "tag": "span",
+          "text": "Fortsätt",
+          "identifier": "span"
+        },
+        "_detectedChange": "url"
+      },
+      "description": "AI Action: click at (511, 721) - Fortsätt (Continue) button",
+      "timestamp": "2026-01-15T18:30:01.810Z",
+      "status": "success",
+      "expectedChange": "url",
+      "expectedElement": {
+        "tag": "span",
+        "text": "Fortsätt",
+        "identifier": "span"
+      }
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 511,
+        "y": 591,
+        "description": "Fortsätt (Continue) button",
+        "_targetElement": {
+          "tag": "span",
+          "text": "Fortsätt",
+          "identifier": "span"
+        },
+        "_detectedChange": "url"
+      },
+      "description": "AI Action: click at (511, 591) - Fortsätt (Continue) button",
+      "timestamp": "2026-01-15T18:30:08.782Z",
+      "status": "success",
+      "expectedChange": "url",
+      "expectedElement": {
+        "tag": "span",
+        "text": "Fortsätt",
+        "identifier": "span"
+      }
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 511,
+        "y": 659,
+        "description": "Fortsätt (Continue) button",
+        "_targetElement": {
+          "tag": "span",
+          "text": "Fortsätt",
+          "identifier": "span"
+        },
+        "_detectedChange": "url"
+      },
+      "description": "AI Action: click at (511, 659) - Fortsätt (Continue) button",
+      "timestamp": "2026-01-15T18:30:15.068Z",
+      "status": "success",
+      "expectedChange": "url",
+      "expectedElement": {
+        "tag": "span",
+        "text": "Fortsätt",
+        "identifier": "span"
+      }
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 601,
+        "y": 603,
+        "description": "Fortsätt (Continue) button",
+        "_targetElement": {
+          "tag": "span",
+          "text": "Fortsätt",
+          "identifier": "span"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (601, 603) - Fortsätt (Continue) button",
+      "timestamp": "2026-01-15T18:30:24.076Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "span",
+        "text": "Fortsätt",
+        "identifier": "span"
+      }
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 701,
+        "y": 369,
+        "description": "E-post (Email) field",
+        "_targetElement": {
+          "tag": "input",
+          "text": "E-post",
+          "identifier": "input#hf-form-group-username-input[name=\"username\"][role=\"textbox\"]"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (701, 369) - E-post (Email) field",
+      "timestamp": "2026-01-15T18:30:31.399Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "input",
+        "text": "E-post",
+        "identifier": "input#hf-form-group-username-input[name=\"username\"][role=\"textbox\"]"
+      }
+    },
+    {
+      "type": "type_text",
+      "params": {
+        "text": "{{dynamicEmail}}"
+      },
+      "description": "AI Action: type \"jordan.mcinnis+jan15521671@hellofresh.ca\"",
+      "timestamp": "2026-01-15T18:30:36.737Z",
+      "status": "success"
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 701,
+        "y": 553,
+        "description": "Fortsätt (Continue) button",
+        "_targetElement": {
+          "tag": "span",
+          "text": "Fortsätt",
+          "identifier": "span"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (701, 553) - Fortsätt (Continue) button",
+      "timestamp": "2026-01-15T18:30:43.805Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "span",
+        "text": "Fortsätt",
+        "identifier": "span"
+      }
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 701,
+        "y": 505,
+        "description": "Ställ in lösenord (Set password) button",
+        "_targetElement": {
+          "tag": "span",
+          "text": "Ställ in lösenord",
+          "identifier": "span"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (701, 505) - Ställ in lösenord (Set password) button",
+      "timestamp": "2026-01-15T18:30:55.390Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "span",
+        "text": "Ställ in lösenord",
+        "identifier": "span"
+      }
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 701,
+        "y": 545,
+        "description": "Välj lösenord (Choose password) field",
+        "_targetElement": {
+          "tag": "input",
+          "text": "Välj lösenord",
+          "identifier": "input#hf-form-group-password-input[name=\"password\"][role=\"textbox\"]"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (701, 545) - Välj lösenord (Choose password) field",
+      "timestamp": "2026-01-15T18:31:02.450Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "input",
+        "text": "Välj lösenord",
+        "identifier": "input#hf-form-group-password-input[name=\"password\"][role=\"textbox\"]"
+      }
+    },
+    {
+      "type": "type_text",
+      "params": {
+        "text": "password"
+      },
+      "description": "AI Action: type \"password\"",
+      "timestamp": "2026-01-15T18:31:07.358Z",
+      "status": "success"
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 701,
+        "y": 673,
+        "description": "Fortsätt (Continue) button",
+        "_targetElement": {
+          "tag": "span",
+          "text": "Fortsätt",
+          "identifier": "span"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (701, 673) - Fortsätt (Continue) button",
+      "timestamp": "2026-01-15T18:31:13.197Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "span",
+        "text": "Fortsätt",
+        "identifier": "span"
+      }
+    },
+    {
+      "type": "scroll",
+      "params": {
+        "direction": "down"
+      },
+      "description": "AI Action: scroll",
+      "timestamp": "2026-01-15T18:31:19.802Z",
+      "status": "success"
+    },
+    {
+      "type": "scroll",
+      "params": {
+        "direction": "up"
+      },
+      "description": "AI Action: scroll",
+      "timestamp": "2026-01-15T18:31:25.461Z",
+      "status": "success"
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 301,
+        "y": 210,
+        "description": "Förnamn (First name) field",
+        "_targetElement": {
+          "tag": "input",
+          "text": "Förnamn ",
+          "identifier": "input#firstName[name=\"firstName\"][role=\"textbox\"]"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (301, 210) - Förnamn (First name) field",
+      "timestamp": "2026-01-15T18:31:35.976Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "input",
+        "text": "Förnamn ",
+        "identifier": "input#firstName[name=\"firstName\"][role=\"textbox\"]"
+      }
+    },
+    {
+      "type": "type_text",
+      "params": {
+        "text": "Erik"
+      },
+      "description": "AI Action: type \"Erik\"",
+      "timestamp": "2026-01-15T18:31:40.848Z",
+      "status": "success"
+    },
+    {
+      "type": "press_key",
+      "params": {
+        "key": "Tab"
+      },
+      "description": "AI Action: press_key",
+      "timestamp": "2026-01-15T18:31:45.820Z",
+      "status": "success"
+    },
+    {
+      "type": "type_text",
+      "params": {
+        "text": "Andersson"
+      },
+      "description": "AI Action: type \"Andersson\"",
+      "timestamp": "2026-01-15T18:31:50.881Z",
+      "status": "success"
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 301,
+        "y": 270,
+        "description": "Gatunamn (Street name) field",
+        "_targetElement": {
+          "tag": "input",
+          "text": "Gatunamn ",
+          "identifier": "input#address1Street[name=\"address1Street\"][role=\"textbox\"]"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (301, 270) - Gatunamn (Street name) field",
+      "timestamp": "2026-01-15T18:31:56.502Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "input",
+        "text": "Gatunamn ",
+        "identifier": "input#address1Street[name=\"address1Street\"][role=\"textbox\"]"
+      }
+    },
+    {
+      "type": "type_text",
+      "params": {
+        "text": "Alpbacken"
+      },
+      "description": "AI Action: type \"Alpbacken\"",
+      "timestamp": "2026-01-15T18:32:01.545Z",
+      "status": "success"
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 301,
+        "y": 310,
+        "description": "First Alpbacken address suggestion",
+        "_targetElement": {
+          "tag": "span",
+          "text": "832 96 Frösön - 3 Addresses",
+          "identifier": "span"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (301, 310) - First Alpbacken address suggestion",
+      "timestamp": "2026-01-15T18:32:09.365Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "span",
+        "text": "832 96 Frösön - 3 Addresses",
+        "identifier": "span"
+      }
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 721,
+        "y": 270,
+        "description": "Husnummer (House number) field",
+        "_targetElement": {
+          "tag": "input",
+          "text": "Husnummer ",
+          "identifier": "input#address1No[name=\"address1No\"][role=\"textbox\"]"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (721, 270) - Husnummer (House number) field",
+      "timestamp": "2026-01-15T18:32:16.305Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "input",
+        "text": "Husnummer ",
+        "identifier": "input#address1No[name=\"address1No\"][role=\"textbox\"]"
+      }
+    },
+    {
+      "type": "type_text",
+      "params": {
+        "text": "1"
+      },
+      "description": "AI Action: type \"1\"",
+      "timestamp": "2026-01-15T18:32:22.102Z",
+      "status": "success"
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 721,
+        "y": 390,
+        "description": "Mobile number field",
+        "_targetElement": {
+          "tag": "input",
+          "text": "Mobilnummer (för leveransfrågor) ",
+          "identifier": "input#phone[name=\"phone\"][role=\"textbox\"]"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (721, 390) - Mobile number field",
+      "timestamp": "2026-01-15T18:32:29.858Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "input",
+        "text": "Mobilnummer (för leveransfrågor) ",
+        "identifier": "input#phone[name=\"phone\"][role=\"textbox\"]"
+      }
+    },
+    {
+      "type": "type_text",
+      "params": {
+        "text": "0701234567"
+      },
+      "description": "AI Action: type \"0701234567\"",
+      "timestamp": "2026-01-15T18:32:35.556Z",
+      "status": "success"
+    },
+    {
+      "type": "scroll",
+      "params": {
+        "direction": "down"
+      },
+      "description": "AI Action: scroll",
+      "timestamp": "2026-01-15T18:32:45.602Z",
+      "status": "success"
+    },
+    {
+      "type": "scroll",
+      "params": {
+        "direction": "up",
+        "amount": 100
+      },
+      "description": "AI Action: scroll",
+      "timestamp": "2026-01-15T18:32:52.968Z",
+      "status": "success"
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 721,
+        "y": 235,
+        "description": "City (Ort) field",
+        "_targetElement": {
+          "tag": "input",
+          "text": "Ort ",
+          "identifier": "input#city[name=\"city\"][role=\"textbox\"]"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (721, 235) - City (Ort) field",
+      "timestamp": "2026-01-15T18:32:59.693Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "input",
+        "text": "Ort ",
+        "identifier": "input#city[name=\"city\"][role=\"textbox\"]"
+      }
+    },
+    {
+      "type": "type_text",
+      "params": {
+        "text": "Stockholm"
+      },
+      "description": "AI Action: type \"Stockholm\"",
+      "timestamp": "2026-01-15T18:33:05.995Z",
+      "status": "success"
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 512,
+        "y": 711,
+        "description": "Nästa (Next) button",
+        "_targetElement": {
+          "tag": "span",
+          "text": "Nästa",
+          "identifier": "span"
+        },
+        "_detectedChange": "url"
+      },
+      "description": "AI Action: click at (512, 711) - Nästa (Next) button",
+      "timestamp": "2026-01-15T18:33:12.942Z",
+      "status": "success",
+      "expectedChange": "url",
+      "expectedElement": {
+        "tag": "span",
+        "text": "Nästa",
+        "identifier": "span"
+      }
+    },
+    {
+      "type": "scroll",
+      "params": {
+        "direction": "down"
+      },
+      "description": "AI Action: scroll",
+      "timestamp": "2026-01-15T18:33:23.892Z",
+      "status": "success"
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 512,
+        "y": 200,
+        "description": "Card number field (Kortnummer)",
+        "_targetElement": {
+          "tag": "iframe",
+          "text": "Iframe för kortnummer",
+          "identifier": "iframe"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (512, 200) - Card number field (Kortnummer)",
+      "timestamp": "2026-01-15T18:33:34.596Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "iframe",
+        "text": "Iframe för kortnummer",
+        "identifier": "iframe"
+      }
+    },
+    {
+      "type": "type_text",
+      "params": {
+        "text": "4111111111111111"
+      },
+      "description": "AI Action: type \"4111111111111111\"",
+      "timestamp": "2026-01-15T18:33:41.763Z",
+      "status": "success"
+    },
+    {
+      "type": "press_key",
+      "params": {
+        "key": "Tab"
+      },
+      "description": "AI Action: press_key",
+      "timestamp": "2026-01-15T18:33:48.301Z",
+      "status": "success"
+    },
+    {
+      "type": "type_text",
+      "params": {
+        "text": "0330"
+      },
+      "description": "AI Action: type \"0330\"",
+      "timestamp": "2026-01-15T18:33:54.664Z",
+      "status": "success"
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 711,
+        "y": 278,
+        "description": "Security code field (Säkerhetskod)",
+        "_targetElement": {
+          "tag": "iframe",
+          "text": "Iframe för säkerhetskod",
+          "identifier": "iframe"
+        },
+        "_detectedChange": "none"
+      },
+      "description": "AI Action: click at (711, 278) - Security code field (Säkerhetskod)",
+      "timestamp": "2026-01-15T18:34:05.038Z",
+      "status": "success",
+      "expectedChange": "none",
+      "expectedElement": {
+        "tag": "iframe",
+        "text": "Iframe för säkerhetskod",
+        "identifier": "iframe"
+      }
+    },
+    {
+      "type": "type_text",
+      "params": {
+        "text": "737"
+      },
+      "description": "AI Action: type \"737\"",
+      "timestamp": "2026-01-15T18:34:10.722Z",
+      "status": "success"
+    },
+    {
+      "type": "scroll",
+      "params": {
+        "direction": "down"
+      },
+      "description": "AI Action: scroll",
+      "timestamp": "2026-01-15T18:34:20.258Z",
+      "status": "success"
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 511,
+        "y": 543,
+        "description": "Beställ & välj måltider button (Order & Choose Meals)",
+        "_targetElement": {
+          "tag": "span",
+          "text": "Beställ & välj måltider",
+          "identifier": "span"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (511, 543) - Beställ & välj måltider button (Order & Choose Meals)",
+      "timestamp": "2026-01-15T18:34:31.019Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "span",
+        "text": "Beställ & välj måltider",
+        "identifier": "span"
+      }
+    },
+    {
+      "type": "random_wait",
+      "params": {
+        "min": 3000,
+        "max": 5000
+      },
+      "description": "AI Action: random_wait",
+      "timestamp": "2026-01-15T18:34:46.186Z",
+      "status": "success"
+    },
+    {
+      "type": "scroll",
+      "params": {
+        "direction": "down",
+        "amount": 0
+      },
+      "description": "AI Action: scroll",
+      "timestamp": "2026-01-15T18:34:50.820Z",
+      "status": "success"
+    },
+    {
+      "type": "wait",
+      "params": {
+        "duration": 2000
+      },
+      "description": "Final Wait",
+      "timestamp": "2026-01-15T18:35:06.682Z",
+      "status": "success"
+    }
+  ],
+  "lastUpdated": "2026-01-15T18:35:06.682Z",
+  "expiresAt": "2026-01-29T18:35:06.683Z"
+}

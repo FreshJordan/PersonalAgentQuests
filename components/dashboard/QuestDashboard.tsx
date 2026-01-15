@@ -33,7 +33,8 @@ export const QuestDashboard: React.FC<QuestDashboardProps> = ({
   sessions,
   onCloseSession,
 }) => {
-  const selectedQuest = quests.find((q) => q.id === selectedQuestId) || quests[0];
+  const selectedQuest =
+    quests.find((q) => q.id === selectedQuestId) || quests[0];
 
   // Show loading state while quests are being fetched
   if (!selectedQuest) {
@@ -47,7 +48,9 @@ export const QuestDashboard: React.FC<QuestDashboardProps> = ({
         }}
       >
         <h1>Loading Quests...</h1>
-        <p style={{ color: '#666' }}>Please wait while quests are being loaded.</p>
+        <p style={{ color: '#666' }}>
+          Please wait while quests are being loaded.
+        </p>
       </div>
     );
   }
@@ -228,4 +231,3 @@ export const QuestDashboard: React.FC<QuestDashboardProps> = ({
     </div>
   );
 };
-
