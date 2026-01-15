@@ -1,0 +1,708 @@
+{
+  "id": "good-chop-registration",
+  "name": "Good Chop Registration",
+  "description": "1. Navigate to https://www-staging.goodchop.com/plans\n2. Continue through the signup funnel, only selecting required information. If required to select something, choose randomly.\n4. When you get to the page asking for email/login details, enter a new email in accordance with new email rules, using 'password' as the password.\n5. Enter random delivery address information, ignore validation unless it prevents you from progressing to the next step.\n5. Enter credit card details in accordance with credit card details provided in the system prompt. Progress to next step, doing anything else required.\n6. Once the account is created and there is some format of a 'welcome' message, or welcome survey, this task is complete.",
+  "steps": [
+    {
+      "type": "navigate",
+      "params": {
+        "url": "https://www-staging.goodchop.com/plans"
+      },
+      "description": "Navigate to https://www-staging.goodchop.com/plans",
+      "timestamp": "2026-01-15T16:55:25.447Z",
+      "status": "success"
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 516,
+        "y": 245,
+        "description": "medium box",
+        "_targetElement": {
+          "tag": "li",
+          "text": "Good for individuals & couples.",
+          "identifier": "li"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "Click at (516, 245) - medium box",
+      "timestamp": "2026-01-15T16:55:36.991Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "li",
+        "text": "Good for individuals & couples.",
+        "identifier": "li"
+      }
+    },
+    {
+      "type": "scroll",
+      "params": {
+        "direction": "down"
+      },
+      "description": "scroll: {\"direction\":\"down\"}",
+      "timestamp": "2026-01-15T16:55:40.021Z",
+      "status": "success"
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 513,
+        "y": 474,
+        "description": "Click at (513, 474)",
+        "_targetElement": {
+          "tag": "span",
+          "text": "Next, select cuts",
+          "identifier": "span"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "Click at (513, 474)",
+      "timestamp": "2026-01-15T16:55:44.595Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "span",
+        "text": "Next, select cuts",
+        "identifier": "span"
+      }
+    },
+    {
+      "type": "wait",
+      "params": {
+        "duration": 2000
+      },
+      "description": "wait: {\"duration\":2000}",
+      "timestamp": "2026-01-15T16:55:49.356Z",
+      "status": "success"
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 236,
+        "y": 301,
+        "description": "click items",
+        "_targetElement": {
+          "tag": "svg",
+          "text": "svg",
+          "identifier": "svg[role=\"graphics-symbol\"]"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "Click at (236, 301) - click items",
+      "timestamp": "2026-01-15T16:55:56.998Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "svg",
+        "text": "svg",
+        "identifier": "svg[role=\"graphics-symbol\"]"
+      }
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 475,
+        "y": 303,
+        "description": "Click at (475, 303)",
+        "_targetElement": {
+          "tag": "svg",
+          "text": "svg",
+          "identifier": "svg[role=\"graphics-symbol\"]"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "Click at (475, 303)",
+      "timestamp": "2026-01-15T16:55:59.324Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "svg",
+        "text": "svg",
+        "identifier": "svg[role=\"graphics-symbol\"]"
+      }
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 729,
+        "y": 300,
+        "description": "Click at (729, 300)",
+        "_targetElement": {
+          "tag": "svg",
+          "text": "svg",
+          "identifier": "svg[role=\"graphics-symbol\"]"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "Click at (729, 300)",
+      "timestamp": "2026-01-15T16:56:00.755Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "svg",
+        "text": "svg",
+        "identifier": "svg[role=\"graphics-symbol\"]"
+      }
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 972,
+        "y": 304,
+        "description": "Click at (972, 304)",
+        "_targetElement": {
+          "tag": "path",
+          "text": "path",
+          "identifier": "path"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "Click at (972, 304)",
+      "timestamp": "2026-01-15T16:56:02.048Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "path",
+        "text": "path",
+        "identifier": "path"
+      }
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 231,
+        "y": 556,
+        "description": "Click at (231, 556)",
+        "_targetElement": {
+          "tag": "path",
+          "text": "path",
+          "identifier": "path"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "Click at (231, 556)",
+      "timestamp": "2026-01-15T16:56:03.789Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "path",
+        "text": "path",
+        "identifier": "path"
+      }
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 481,
+        "y": 553,
+        "description": "Click at (481, 553)",
+        "_targetElement": {
+          "tag": "path",
+          "text": "path",
+          "identifier": "path"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "Click at (481, 553)",
+      "timestamp": "2026-01-15T16:56:05.770Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "path",
+        "text": "path",
+        "identifier": "path"
+      }
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 539,
+        "y": 732,
+        "description": "continue",
+        "_targetElement": {
+          "tag": "span",
+          "text": "Continue",
+          "identifier": "span"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "Click at (539, 732) - continue",
+      "timestamp": "2026-01-15T16:56:09.525Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "span",
+        "text": "Continue",
+        "identifier": "span"
+      }
+    },
+    {
+      "type": "wait",
+      "params": {
+        "duration": 2000
+      },
+      "description": "wait: {\"duration\":2000}",
+      "timestamp": "2026-01-15T16:56:13.787Z",
+      "status": "success"
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 734,
+        "y": 257,
+        "description": "email click",
+        "_targetElement": {
+          "tag": "input",
+          "text": "Please enter your email address",
+          "identifier": "input[name=\"email\"]"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "Click at (734, 257) - email click",
+      "timestamp": "2026-01-15T16:56:19.306Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "input",
+        "text": "Please enter your email address",
+        "identifier": "input[name=\"email\"]"
+      }
+    },
+    {
+      "type": "type_text",
+      "params": {
+        "text": "{{dynamicEmail}}"
+      },
+      "description": "Type: {{dynamicEmail}} (dynamic)",
+      "timestamp": "2026-01-15T16:56:23.021Z",
+      "status": "success"
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 683,
+        "y": 340,
+        "description": "Click at (683, 340)",
+        "_targetElement": {
+          "tag": "button",
+          "text": "Continue",
+          "identifier": "button"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "Click at (683, 340)",
+      "timestamp": "2026-01-15T16:56:26.209Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "button",
+        "text": "Continue",
+        "identifier": "button"
+      }
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 652,
+        "y": 353,
+        "description": "Click at (652, 353)",
+        "_targetElement": {
+          "tag": "input",
+          "text": "input",
+          "identifier": "input[name=\"password\"][data-testid=\"input-password-field\"]"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "Click at (652, 353)",
+      "timestamp": "2026-01-15T16:56:28.390Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "input",
+        "text": "input",
+        "identifier": "input[name=\"password\"][data-testid=\"input-password-field\"]"
+      }
+    },
+    {
+      "type": "type_text",
+      "params": {
+        "text": "password"
+      },
+      "description": "Type: \"password\"",
+      "timestamp": "2026-01-15T16:56:34.560Z",
+      "status": "success"
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 711,
+        "y": 425,
+        "description": "Click at (711, 425)",
+        "_targetElement": {
+          "tag": "span",
+          "text": "Continue",
+          "identifier": "span"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "Click at (711, 425)",
+      "timestamp": "2026-01-15T16:56:37.052Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "span",
+        "text": "Continue",
+        "identifier": "span"
+      }
+    },
+    {
+      "type": "wait",
+      "params": {
+        "duration": 2000
+      },
+      "description": "wait: {\"duration\":2000}",
+      "timestamp": "2026-01-15T16:56:40.972Z",
+      "status": "success"
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 218,
+        "y": 334,
+        "description": "form selection",
+        "_targetElement": {
+          "tag": "input",
+          "text": "input",
+          "identifier": "input[name=\"firstName\"][data-testid=\"address-first-name\"]"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "Click at (218, 334) - form selection",
+      "timestamp": "2026-01-15T16:56:45.919Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "input",
+        "text": "input",
+        "identifier": "input[name=\"firstName\"][data-testid=\"address-first-name\"]"
+      }
+    },
+    {
+      "type": "type_text",
+      "params": {
+        "text": "Jordan"
+      },
+      "description": "Type: \"Jordan\"",
+      "timestamp": "2026-01-15T16:56:50.438Z",
+      "status": "success"
+    },
+    {
+      "type": "press_key",
+      "params": {
+        "key": "Tab"
+      },
+      "description": "press_key: {\"key\":\"Tab\"}",
+      "timestamp": "2026-01-15T16:56:55.654Z",
+      "status": "success"
+    },
+    {
+      "type": "type_text",
+      "params": {
+        "text": "Test"
+      },
+      "description": "Type: \"Test\"",
+      "timestamp": "2026-01-15T16:56:58.351Z",
+      "status": "success"
+    },
+    {
+      "type": "press_key",
+      "params": {
+        "key": "Tab"
+      },
+      "description": "press_key: {\"key\":\"Tab\"}",
+      "timestamp": "2026-01-15T16:57:01.296Z",
+      "status": "success"
+    },
+    {
+      "type": "type_text",
+      "params": {
+        "text": "123"
+      },
+      "description": "Type: \"123\"",
+      "timestamp": "2026-01-15T16:57:04.405Z",
+      "status": "success"
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 198,
+        "y": 467,
+        "description": "Click at (198, 467)",
+        "_targetElement": {
+          "tag": "span",
+          "text": "Lockport NY 14094",
+          "identifier": "span"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "Click at (198, 467)",
+      "timestamp": "2026-01-15T16:57:07.247Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "span",
+        "text": "Lockport NY 14094",
+        "identifier": "span"
+      }
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 202,
+        "y": 622,
+        "description": "phone",
+        "_targetElement": {
+          "tag": "input",
+          "text": "input",
+          "identifier": "input[name=\"phone\"][data-testid=\"address-phone\"]"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "Click at (202, 622) - phone",
+      "timestamp": "2026-01-15T16:57:11.439Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "input",
+        "text": "input",
+        "identifier": "input[name=\"phone\"][data-testid=\"address-phone\"]"
+      }
+    },
+    {
+      "type": "type_text",
+      "params": {
+        "text": "1111111111"
+      },
+      "description": "Type: \"1111111111\"",
+      "timestamp": "2026-01-15T16:57:17.506Z",
+      "status": "success"
+    },
+    {
+      "type": "scroll",
+      "params": {
+        "direction": "down"
+      },
+      "description": "scroll: {\"direction\":\"down\"}",
+      "timestamp": "2026-01-15T16:57:20.697Z",
+      "status": "success"
+    },
+    {
+      "type": "scroll",
+      "params": {
+        "direction": "down"
+      },
+      "description": "scroll: {\"direction\":\"down\"}",
+      "timestamp": "2026-01-15T16:57:24.253Z",
+      "status": "success"
+    },
+    {
+      "type": "scroll",
+      "params": {
+        "direction": "down"
+      },
+      "description": "scroll: {\"direction\":\"down\"}",
+      "timestamp": "2026-01-15T16:57:28.386Z",
+      "status": "success"
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 518,
+        "y": 677,
+        "description": "Click at (518, 677)",
+        "_targetElement": {
+          "tag": "span",
+          "text": "Next",
+          "identifier": "span"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "Click at (518, 677)",
+      "timestamp": "2026-01-15T16:57:33.589Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "span",
+        "text": "Next",
+        "identifier": "span"
+      }
+    },
+    {
+      "type": "wait",
+      "params": {
+        "duration": 2000
+      },
+      "description": "wait: {\"duration\":2000}",
+      "timestamp": "2026-01-15T16:57:38.920Z",
+      "status": "success"
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 510,
+        "y": 672,
+        "description": "Click at (510, 672)",
+        "_targetElement": {
+          "tag": "span",
+          "text": "Next",
+          "identifier": "span"
+        },
+        "_detectedChange": "url"
+      },
+      "description": "Click at (510, 672)",
+      "timestamp": "2026-01-15T16:57:48.081Z",
+      "status": "success",
+      "expectedChange": "url",
+      "expectedElement": {
+        "tag": "span",
+        "text": "Next",
+        "identifier": "span"
+      }
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 500,
+        "y": 400,
+        "description": "Click at (500, 400)",
+        "_targetElement": {
+          "tag": "iframe",
+          "text": "iframe",
+          "identifier": "iframe#braintree-hosted-field-number[name=\"braintree-hosted-field-number\"]"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "Click at (500, 400)",
+      "timestamp": "2026-01-15T16:57:59.381Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "iframe",
+        "text": "iframe",
+        "identifier": "iframe#braintree-hosted-field-number[name=\"braintree-hosted-field-number\"]"
+      }
+    },
+    {
+      "type": "type_text",
+      "params": {
+        "text": "4111111111111111"
+      },
+      "description": "Type: \"4111111111111111\"",
+      "timestamp": "2026-01-15T16:58:06.725Z",
+      "status": "success"
+    },
+    {
+      "type": "press_key",
+      "params": {
+        "key": "Tab"
+      },
+      "description": "press_key: {\"key\":\"Tab\"}",
+      "timestamp": "2026-01-15T16:58:10.289Z",
+      "status": "success"
+    },
+    {
+      "type": "type_text",
+      "params": {
+        "text": "0330"
+      },
+      "description": "Type: \"0330\"",
+      "timestamp": "2026-01-15T16:58:14.846Z",
+      "status": "success"
+    },
+    {
+      "type": "press_key",
+      "params": {
+        "key": "Tab"
+      },
+      "description": "press_key: {\"key\":\"Tab\"}",
+      "timestamp": "2026-01-15T16:58:17.637Z",
+      "status": "success"
+    },
+    {
+      "type": "type_text",
+      "params": {
+        "text": "737"
+      },
+      "description": "Type: \"737\"",
+      "timestamp": "2026-01-15T16:58:21.329Z",
+      "status": "success"
+    },
+    {
+      "type": "scroll",
+      "params": {
+        "direction": "down"
+      },
+      "description": "scroll: {\"direction\":\"down\"}",
+      "timestamp": "2026-01-15T16:58:24.718Z",
+      "status": "success"
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 24,
+        "y": 423,
+        "description": "Click at (24, 423)",
+        "_targetElement": {
+          "tag": "input",
+          "text": "input",
+          "identifier": "input[name=\"checkbox-undefined\"][role=\"checkbox\"]"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "Click at (24, 423)",
+      "timestamp": "2026-01-15T16:58:28.269Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "input",
+        "text": "input",
+        "identifier": "input[name=\"checkbox-undefined\"][role=\"checkbox\"]"
+      }
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 513,
+        "y": 481,
+        "description": "Click at (513, 481)",
+        "_targetElement": {
+          "tag": "span",
+          "text": "Place order",
+          "identifier": "span"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "Click at (513, 481)",
+      "timestamp": "2026-01-15T16:58:31.079Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "span",
+        "text": "Place order",
+        "identifier": "span"
+      }
+    },
+    {
+      "type": "wait",
+      "params": {
+        "duration": 2000
+      },
+      "description": "wait: {\"duration\":2000}",
+      "timestamp": "2026-01-15T16:58:35.196Z",
+      "status": "success"
+    }
+  ],
+  "lastUpdated": "2026-01-15T16:58:38.274Z",
+  "expiresAt": "2026-01-29T16:58:38.284Z"
+}

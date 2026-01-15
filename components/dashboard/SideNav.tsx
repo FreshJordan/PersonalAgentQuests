@@ -1,6 +1,6 @@
 import React from 'react';
 
-type View = 'dashboard' | 'logs';
+export type View = 'dashboard' | 'logs' | 'script-creator';
 
 interface SideNavProps {
   currentView: View;
@@ -34,8 +34,7 @@ export const SideNav: React.FC<SideNavProps> = ({
             textAlign: 'left',
             padding: '10px',
             border: 'none',
-            background:
-              currentView === 'dashboard' ? '#e6f7ff' : 'transparent',
+            background: currentView === 'dashboard' ? '#e6f7ff' : 'transparent',
             color: currentView === 'dashboard' ? '#0969da' : '#24292f',
             borderRadius: '6px',
             cursor: 'pointer',
@@ -59,6 +58,22 @@ export const SideNav: React.FC<SideNavProps> = ({
         >
           Log Viewer
         </button>
+        <button
+          onClick={() => onChangeView('script-creator')}
+          style={{
+            textAlign: 'left',
+            padding: '10px',
+            border: 'none',
+            background:
+              currentView === 'script-creator' ? '#e6f7ff' : 'transparent',
+            color: currentView === 'script-creator' ? '#0969da' : '#24292f',
+            borderRadius: '6px',
+            cursor: 'pointer',
+            fontWeight: currentView === 'script-creator' ? 'bold' : 'normal',
+          }}
+        >
+          ✨ Quest Creator
+        </button>
       </nav>
 
       <div style={{ marginTop: 'auto', fontSize: '12px', color: '#666' }}>
@@ -67,4 +82,3 @@ export const SideNav: React.FC<SideNavProps> = ({
     </div>
   );
 };
-

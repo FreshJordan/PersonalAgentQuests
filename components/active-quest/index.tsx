@@ -52,6 +52,7 @@ export const ActiveQuest: React.FC<ActiveQuestProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<QuestStatus>('starting');
   const [takeoverStep, setTakeoverStep] = useState<number | null>(null);
+  const [hadAITakeover, setHadAITakeover] = useState(false);
   const [ticketList, setTicketList] = useState<
     { key: string; summary: string; description?: string | null }[]
   >([]);
@@ -231,6 +232,7 @@ export const ActiveQuest: React.FC<ActiveQuestProps> = ({
     let active = true;
     const controller = new AbortController();
     let currentStatus: QuestStatus = 'starting';
+    let aiTakeoverOccurred = false;
 
     const startQuest = async () => {
       try {
@@ -284,6 +286,8 @@ export const ActiveQuest: React.FC<ActiveQuestProps> = ({
                       data.message.includes('Handing over to AI')
                     ) {
                       nextStatus = 'ai_takeover';
+                      aiTakeoverOccurred = true;
+                      setHadAITakeover(true);
                       const match = data.message.match(
                         /at step (\d+)|index (\d+)/
                       );
@@ -291,16 +295,21 @@ export const ActiveQuest: React.FC<ActiveQuestProps> = ({
                         setTakeoverStep(parseInt(match[1] || match[2]) + 1);
                       }
                     } else if (
-                      currentStatus !== 'ai_takeover' &&
+                      !aiTakeoverOccurred &&
                       data.message.includes('[Script]:')
                     ) {
                       nextStatus = 'in_progress_script';
                     } else if (
-                      currentStatus !== 'ai_takeover' &&
+                      !aiTakeoverOccurred &&
                       data.message.includes('[AI]:')
                     ) {
                       nextStatus = 'in_progress_ai';
-                    } else if (data.message.includes('Step failed:')) {
+                    } else if (
+                      !aiTakeoverOccurred &&
+                      data.message.includes('Step failed:')
+                    ) {
+                      // Only show possible_issues if we haven't transitioned to AI takeover
+                      // After AI takeover, failures are expected as AI is troubleshooting
                       nextStatus = 'possible_issues';
                     }
 
@@ -331,7 +340,8 @@ export const ActiveQuest: React.FC<ActiveQuestProps> = ({
                     setLoading(false);
                     if (questId === 'jira-ticket-research') {
                       setStatus('success_ai');
-                    } else if (currentStatus === 'ai_takeover') {
+                    } else if (aiTakeoverOccurred) {
+                      // AI takeover happened at some point, so this is a takeover success
                       setStatus('success_takeover');
                     } else if (currentStatus === 'in_progress_ai') {
                       setStatus('success_ai');
@@ -395,7 +405,7 @@ export const ActiveQuest: React.FC<ActiveQuestProps> = ({
       {!isCollapsed && (
         <div
           style={{
-            padding: '20px',
+            padding: '12px',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
@@ -404,7 +414,7 @@ export const ActiveQuest: React.FC<ActiveQuestProps> = ({
           <div
             style={{
               display: 'flex',
-              gap: '20px',
+              gap: '12px',
               justifyContent: 'center',
               alignItems: 'flex-start',
               flexWrap: 'wrap',

@@ -29,3 +29,13 @@ export const CLARIFICATION_CONFIG = {
   questionsDir: '.agent-questions', // Directory for question/answer file exchange
   defaultTimeout: 300000, // 5 minutes for user to respond
 };
+
+/**
+ * Browser viewport and scroll configuration
+ * Used by BrowserService, HybridQuestRunner, and Script Creator
+ */
+export const BROWSER_CONFIG = {
+  viewportWidth: 1024,
+  viewportHeight: 768,
+  scrollAmount: 384, // Half viewport height (768/2)
+};

@@ -1,3 +1,5 @@
+import { BROWSER_CONFIG } from '../constants';
+
 /**
  * Prompt constants for the HybridQuestRunner.
  * These are the system prompts and context messages used by the AI agent.
@@ -104,14 +106,24 @@ DATA RULES:
    - Zip: 90210 (or any valid US zip)
 
 GUIDELINES:
+0. Note that any values that appear filled out in forms are likely placeholders, especially if the text colour is grey/different from the rest.
 1. Use the available tools.
 2. When filling out forms, prefer using the 'press_key' tool with 'Tab' to navigate between fields after focusing the first field.
+   - Use 'Shift+Tab' to navigate backwards.
+   - Use 'Meta+a' to select all text in a field before typing to replace it.
+   - Use combination keys with '+' syntax: 'Meta+a', 'Shift+Enter', 'Meta+v', etc.
 
 3. PAGE NAVIGATION & SCROLLING (IMPORTANT):
-   - The viewport is 1024x768 pixels. You can only see and interact with content currently visible in the viewport.
+   - The viewport is ${BROWSER_CONFIG.viewportWidth}x${
+    BROWSER_CONFIG.viewportHeight
+  } pixels. You can only see and interact with content currently visible in the viewport.
    - If you need to find content that is NOT visible in the current screenshot, use the 'scroll' tool:
-     * scroll direction="down" - scrolls down half a viewport (384px)
-     * scroll direction="up" - scrolls up half a viewport (384px)
+     * scroll direction="down" - scrolls down half a viewport (${
+       BROWSER_CONFIG.scrollAmount
+     }px)
+     * scroll direction="up" - scrolls up half a viewport (${
+       BROWSER_CONFIG.scrollAmount
+     }px)
      * You can specify a custom amount: scroll direction="down" amount=200
    - ALWAYS scroll to find elements before giving up. Common scenarios:
      * "Continue" or "Submit" buttons are often at the bottom of forms
@@ -121,7 +133,9 @@ GUIDELINES:
    - If an element you expect is not in the screenshot, TRY SCROLLING before attempting other solutions.
 
 4. CLICKING STRATEGY (CRITICAL - READ CAREFULLY):
-   - The viewport is EXACTLY 1024x768 pixels.
+   - The viewport is EXACTLY ${BROWSER_CONFIG.viewportWidth}x${
+    BROWSER_CONFIG.viewportHeight
+  } pixels.
    - ALWAYS use 'click_at_coordinates' as your PRIMARY clicking method.
    - Look at the screenshot and visually identify where the element is located.
    - Estimate the x,y coordinates of the CENTER of the element you want to click.

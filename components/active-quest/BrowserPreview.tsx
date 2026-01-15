@@ -1,4 +1,9 @@
 import React from 'react';
+import { BROWSER_CONFIG } from '../../lib/constants';
+
+// Use shared browser config for consistency with Script Creator
+const BROWSER_WIDTH = BROWSER_CONFIG.viewportWidth;
+const BROWSER_HEIGHT = BROWSER_CONFIG.viewportHeight;
 
 interface BrowserPreviewProps {
   browserUrl: string;
@@ -14,8 +19,8 @@ export const BrowserPreview: React.FC<BrowserPreviewProps> = ({
   return (
     <div
       style={{
-        width: '700px',
-        height: '500px',
+        width: `${BROWSER_WIDTH}px`,
+        height: `${BROWSER_HEIGHT + 40}px`, // +40 for URL bar
         border: '1px solid #ccc',
         borderRadius: '8px',
         overflow: 'hidden',

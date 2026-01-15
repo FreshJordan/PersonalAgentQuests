@@ -1,5 +1,5 @@
 import React from 'react';
-import { QUESTS } from '../../lib/quests/definitions';
+import { QuestDefinition } from '../../lib/quests/types';
 import { ActiveQuest } from '../active-quest';
 
 export interface QuestSession {
@@ -13,6 +13,7 @@ export interface QuestSession {
 }
 
 interface QuestDashboardProps {
+  quests: QuestDefinition[];
   selectedQuestId: string;
   setSelectedQuestId: (id: string) => void;
   userInput: string;
@@ -23,6 +24,7 @@ interface QuestDashboardProps {
 }
 
 export const QuestDashboard: React.FC<QuestDashboardProps> = ({
+  quests,
   selectedQuestId,
   setSelectedQuestId,
   userInput,
@@ -31,8 +33,24 @@ export const QuestDashboard: React.FC<QuestDashboardProps> = ({
   sessions,
   onCloseSession,
 }) => {
-  const selectedQuest =
-    QUESTS.find((q) => q.id === selectedQuestId) || QUESTS[0];
+  const selectedQuest = quests.find((q) => q.id === selectedQuestId) || quests[0];
+
+  // Show loading state while quests are being fetched
+  if (!selectedQuest) {
+    return (
+      <div
+        style={{
+          padding: '40px',
+          maxWidth: '1200px',
+          margin: '0 auto',
+          textAlign: 'center',
+        }}
+      >
+        <h1>Loading Quests...</h1>
+        <p style={{ color: '#666' }}>Please wait while quests are being loaded.</p>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -76,7 +94,7 @@ export const QuestDashboard: React.FC<QuestDashboardProps> = ({
                 fontSize: '16px',
               }}
             >
-              {QUESTS.map((quest) => (
+              {quests.map((quest) => (
                 <option key={quest.id} value={quest.id}>
                   {quest.name}
                 </option>

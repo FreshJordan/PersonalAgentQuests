@@ -1,3 +1,18 @@
+export interface QuestDefinition {
+  id: string;
+  name: string;
+  description: string;
+  instructions: string;
+  scriptExpirationDays?: number; // How many days scripts for this quest should last
+  hideBrowser?: boolean; // Whether to hide the browser session in the UI
+  inputConfig?: {
+    label: string;
+    placeholder?: string;
+    description?: string;
+  };
+  supportsClarifications?: boolean; // Whether this quest supports interactive clarifications
+}
+
 export interface StepValidation {
   type: 'url_contains' | 'element_visible' | 'element_hidden' | 'text_present';
   value: string;

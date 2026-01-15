@@ -1,4 +1,5 @@
 import { chromium, Browser, Page } from 'playwright';
+import { BROWSER_CONFIG } from '../constants';
 
 export class BrowserService {
   private browser: Browser | null = null;
@@ -7,7 +8,10 @@ export class BrowserService {
   public async launch(headless = true): Promise<Page> {
     this.browser = await chromium.launch({ headless });
     this.page = await this.browser.newPage();
-    await this.page.setViewportSize({ width: 1024, height: 768 });
+    await this.page.setViewportSize({
+      width: BROWSER_CONFIG.viewportWidth,
+      height: BROWSER_CONFIG.viewportHeight,
+    });
     return this.page;
   }
 
@@ -32,6 +36,48 @@ export class BrowserService {
   public async goto(url: string, timeout = 30000) {
     if (!this.page) throw new Error('Browser not initialized');
     await this.page.goto(url, { waitUntil: 'domcontentloaded', timeout });
+  }
+
+  // Aliases for script-creator API compatibility
+  public async init(): Promise<Page> {
+    return this.launch(true);
+  }
+
+  public async navigate(url: string, timeout = 30000) {
+    return this.goto(url, timeout);
+  }
+
+  public async screenshot(): Promise<string | null> {
+    return this.captureScreenshot();
+  }
+
+  public async getUrl(): Promise<string> {
+    if (!this.page) throw new Error('Browser not initialized');
+    return this.page.url();
+  }
+
+  public async clickAtCoordinates(x: number, y: number) {
+    if (!this.page) throw new Error('Browser not initialized');
+    await this.page.mouse.click(x, y);
+  }
+
+  public async typeText(text: string) {
+    if (!this.page) throw new Error('Browser not initialized');
+    await this.page.keyboard.type(text);
+  }
+
+  public async pressKey(key: string) {
+    if (!this.page) throw new Error('Browser not initialized');
+    await this.page.keyboard.press(key);
+  }
+
+  public async scroll(
+    direction: 'up' | 'down',
+    amount = BROWSER_CONFIG.scrollAmount
+  ) {
+    if (!this.page) throw new Error('Browser not initialized');
+    const delta = direction === 'down' ? amount : -amount;
+    await this.page.mouse.wheel(0, delta);
   }
 
   /**
@@ -188,7 +234,11 @@ export class BrowserService {
 
   /**
    * Checks if the element at coordinates matches the expected element.
-   * Returns true if they match (same tag and similar text), false otherwise.
+   * Uses a multi-layered matching approach for reliability:
+   * 1. Direct identifier match (data-testid, id, etc.)
+   * 2. Text content containment (handles parent/child relationship)
+   * 3. Semantic element group matching (handles tag variations)
+   * 4. Nearby element search (handles small layout shifts)
    */
   public async verifyElementAtCoordinates(
     x: number,
@@ -204,25 +254,172 @@ export class BrowserService {
       };
     }
 
-    // Check if tags match
-    const tagMatches = actual.tag === expected.tag;
+    // 1. IDENTIFIER MATCH: Strongest signal - data-testid, id, name, role
+    if (
+      actual.identifier &&
+      expected.identifier &&
+      actual.identifier === expected.identifier
+    ) {
+      return {
+        matches: true,
+        actual: `${actual.tag}: "${actual.text}"`,
+        expected: `${expected.tag}: "${expected.text}"`,
+      };
+    }
 
-    // Check if text is similar (contains expected text or vice versa)
-    const actualTextLower = actual.text.toLowerCase();
-    const expectedTextLower = expected.text.toLowerCase();
-    const textMatches =
+    // 2. TEXT CONTAINMENT: Check if expected text is within actual (or vice versa)
+    const actualTextLower = actual.text.toLowerCase().replace(/\s+/g, ' ');
+    const expectedTextLower = expected.text.toLowerCase().replace(/\s+/g, ' ');
+
+    // Normalize and check for meaningful text overlap
+    const textContained =
       actualTextLower.includes(expectedTextLower) ||
-      expectedTextLower.includes(actualTextLower) ||
-      actual.text === expected.text;
+      expectedTextLower.includes(actualTextLower);
 
-    // Consider it a match if tag matches AND (text matches OR identifier matches)
-    const matches =
-      tagMatches && (textMatches || actual.identifier === expected.identifier);
+    // If text is found within the element (even if it's a parent), it's likely correct
+    if (textContained && expectedTextLower.length > 3) {
+      return {
+        matches: true,
+        actual: `${actual.tag}: "${actual.text}"`,
+        expected: `${expected.tag}: "${expected.text}"`,
+      };
+    }
+
+    // 3. SEMANTIC TAG GROUPS: Tags in same semantic group are interchangeable
+    // e.g., clicking an li or its parent ul/div, or a span inside a button
+    const semanticGroups = [
+      ['button', 'a', 'span', 'div'], // Clickable elements
+      ['li', 'ul', 'ol', 'div', 'nav'], // List structures
+      ['input', 'label', 'span', 'div'], // Form elements
+      ['p', 'span', 'div', 'label'], // Text containers
+      ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'div', 'span'], // Headings
+      ['td', 'tr', 'th', 'div'], // Table elements
+      ['section', 'article', 'div', 'main'], // Structural elements
+    ];
+
+    const tagsInSameGroup = semanticGroups.some(
+      (group) => group.includes(actual.tag) && group.includes(expected.tag)
+    );
+
+    // 4. FUZZY TEXT MATCH: Extract key words and check overlap
+    const extractKeywords = (text: string) =>
+      text
+        .toLowerCase()
+        .replace(/[^a-z0-9\s]/g, ' ')
+        .split(/\s+/)
+        .filter((w) => w.length > 2);
+
+    const actualKeywords = extractKeywords(actual.text);
+    const expectedKeywords = extractKeywords(expected.text);
+
+    // Count how many expected keywords appear in actual
+    const matchingKeywords = expectedKeywords.filter((kw) =>
+      actualKeywords.some((ak) => ak.includes(kw) || kw.includes(ak))
+    );
+
+    // If >50% of expected keywords match and tags are semantically related
+    const keywordMatchRatio =
+      expectedKeywords.length > 0
+        ? matchingKeywords.length / expectedKeywords.length
+        : 0;
+
+    const semanticMatch = tagsInSameGroup && keywordMatchRatio >= 0.5;
+
+    // Also check if at least half the keywords match regardless of tag
+    // (handles cases where a div contains the same content as expected li)
+    const strongTextMatch =
+      keywordMatchRatio >= 0.5 && expectedKeywords.length >= 2;
+
+    // 5. EXACT TAG + PARTIAL TEXT: Original strict check as fallback
+    const tagMatches = actual.tag === expected.tag;
+    const textMatches = textContained || actual.text === expected.text;
+    const strictMatch = tagMatches && textMatches;
+
+    const matches = strictMatch || semanticMatch || strongTextMatch;
 
     return {
       matches,
       actual: `${actual.tag}: "${actual.text}"`,
       expected: `${expected.tag}: "${expected.text}"`,
     };
+  }
+
+  /**
+   * Advanced verification that also checks nearby elements and DOM hierarchy.
+   * Useful when coordinates might hit a parent/child or nearby element.
+   */
+  public async verifyElementAtCoordinatesWithFallback(
+    x: number,
+    y: number,
+    expected: { tag: string; text: string; identifier: string }
+  ): Promise<{ matches: boolean; actual: string; expected: string }> {
+    // First try exact coordinates
+    const directResult = await this.verifyElementAtCoordinates(x, y, expected);
+    if (directResult.matches) {
+      return directResult;
+    }
+
+    // Check if expected element exists anywhere at these coordinates (including children)
+    if (!this.page) {
+      return directResult;
+    }
+
+    try {
+      const foundInHierarchy = await this.page.evaluate(
+        ({ x, y, expected }) => {
+          const topElement = document.elementFromPoint(x, y);
+          if (!topElement) return false;
+
+          // Check all descendants for a match
+          const checkElement = (el: Element): boolean => {
+            const tag = el.tagName.toLowerCase();
+            const text = (el.textContent || '').trim();
+            const expectedTextLower = expected.text.toLowerCase();
+
+            // Check if this element matches
+            if (
+              tag === expected.tag &&
+              text.toLowerCase().includes(expectedTextLower)
+            ) {
+              return true;
+            }
+            return false;
+          };
+
+          // Check the element itself
+          if (checkElement(topElement)) return true;
+
+          // Check all descendants
+          const descendants = topElement.querySelectorAll('*');
+          for (const desc of descendants) {
+            if (checkElement(desc)) return true;
+          }
+
+          // Check ancestors (up to 3 levels)
+          let parent = topElement.parentElement;
+          let depth = 0;
+          while (parent && depth < 3) {
+            if (checkElement(parent)) return true;
+            parent = parent.parentElement;
+            depth++;
+          }
+
+          return false;
+        },
+        { x, y, expected }
+      );
+
+      if (foundInHierarchy) {
+        return {
+          matches: true,
+          actual: `${directResult.actual} (found in hierarchy)`,
+          expected: `${expected.tag}: "${expected.text}"`,
+        };
+      }
+    } catch {
+      // Ignore errors and return original result
+    }
+
+    return directResult;
   }
 }

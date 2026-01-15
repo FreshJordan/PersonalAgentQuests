@@ -1,3 +1,5 @@
+import { BROWSER_CONFIG } from '../constants';
+
 // Tool definitions for the LLM (descriptions kept concise to reduce token usage)
 export const BROWSER_TOOLS = [
   {
@@ -29,12 +31,18 @@ export const BROWSER_TOOLS = [
   },
   {
     name: 'click_at_coordinates',
-    description: 'PREFERRED: Click at x,y coordinates (viewport: 1024x768)',
+    description: `PREFERRED: Click at x,y coordinates (viewport: ${BROWSER_CONFIG.viewportWidth}x${BROWSER_CONFIG.viewportHeight})`,
     input_schema: {
       type: 'object',
       properties: {
-        x: { type: 'number', description: 'X coord (0-1024)' },
-        y: { type: 'number', description: 'Y coord (0-768)' },
+        x: {
+          type: 'number',
+          description: `X coord (0-${BROWSER_CONFIG.viewportWidth})`,
+        },
+        y: {
+          type: 'number',
+          description: `Y coord (0-${BROWSER_CONFIG.viewportHeight})`,
+        },
         description: { type: 'string', description: 'What you are clicking' },
       },
       required: ['x', 'y', 'description'],
@@ -54,7 +62,7 @@ export const BROWSER_TOOLS = [
   },
   {
     name: 'scroll',
-    description: 'Scroll the page (default: half viewport = 384px)',
+    description: `Scroll the page (default: half viewport = ${BROWSER_CONFIG.scrollAmount}px)`,
     input_schema: {
       type: 'object',
       properties: {
@@ -65,7 +73,7 @@ export const BROWSER_TOOLS = [
         },
         amount: {
           type: 'number',
-          description: 'Pixels to scroll (default: 384 = half viewport)',
+          description: `Pixels to scroll (default: ${BROWSER_CONFIG.scrollAmount} = half viewport)`,
         },
       },
       required: ['direction'],
@@ -73,11 +81,16 @@ export const BROWSER_TOOLS = [
   },
   {
     name: 'press_key',
-    description: 'Press a key (Enter, Tab, etc.)',
+    description:
+      'Press a key or key combination. Single keys: Enter, Tab, Escape, ArrowDown, etc. Combinations: Control+a (select all), Control+c (copy), Shift+Tab (prev field), Meta+a (Mac Cmd+a). Use "+" to join modifiers.',
     input_schema: {
       type: 'object',
       properties: {
-        key: { type: 'string', description: 'Key name' },
+        key: {
+          type: 'string',
+          description:
+            'Key or combination (e.g., "Enter", "Tab", "Control+a", "Shift+Enter", "Meta+v")',
+        },
       },
       required: ['key'],
     },

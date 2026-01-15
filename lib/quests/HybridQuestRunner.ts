@@ -21,12 +21,15 @@ import { BedrockService } from '../services/bedrock';
 import { BrowserService } from '../services/browser';
 import { ValidationService } from '../services/validation';
 import { ContextService } from '../services/context';
-import { QUEST_RUNNER_MODEL_ID } from '../constants';
+import { QUEST_RUNNER_MODEL_ID, BROWSER_CONFIG } from '../constants';
 
 // Sliding window size for message history (keeps system prompt + last N messages)
 // Trade-off: Higher = more context for AI, but more tokens. Lower = faster/cheaper, but less context.
 // 10 messages ≈ 5 AI turns (each turn = assistant + user tool_result)
 const MESSAGE_HISTORY_WINDOW = 10;
+
+// Maximum consecutive wait tool uses before failing the mission as stuck
+const MAX_CONSECUTIVE_WAITS = 3;
 
 export class HybridQuestRunner {
   private bedrockService: BedrockService;
@@ -200,12 +203,14 @@ export class HybridQuestRunner {
       .catch(() => undefined);
 
     // ELEMENT VERIFICATION: Check if the expected element is at the coordinates
+    // Uses fallback verification that also checks DOM hierarchy for reliability
     if (expectedElement && coordinates) {
-      const verification = await this.browserService.verifyElementAtCoordinates(
-        coordinates.x,
-        coordinates.y,
-        expectedElement
-      );
+      const verification =
+        await this.browserService.verifyElementAtCoordinatesWithFallback(
+          coordinates.x,
+          coordinates.y,
+          expectedElement
+        );
 
       if (!verification.matches) {
         // Wrong element at coordinates - likely a popup or layout change
@@ -292,8 +297,11 @@ export class HybridQuestRunner {
           ? `"${text}" into ${params.selector}`
           : `"${text}"`;
       case 'scroll':
-        return `${params.direction} ${params.amount || 384}px`;
+        return `${params.direction} ${
+          params.amount || BROWSER_CONFIG.scrollAmount
+        }px`;
       case 'press_key':
+        console.log('params.key', params.key);
         return params.key || 'unknown key';
       case 'random_wait':
       case 'wait':
@@ -360,7 +368,7 @@ export class HybridQuestRunner {
           step.expectedChange
         );
       } else if (step.type === 'scroll') {
-        const amount = finalParams.amount || 384;
+        const amount = finalParams.amount || BROWSER_CONFIG.scrollAmount;
         const deltaY = finalParams.direction === 'up' ? -amount : amount;
         await page.mouse.wheel(0, deltaY);
       } else if (step.type === 'press_key') {
@@ -388,8 +396,8 @@ export class HybridQuestRunner {
     } catch (e: unknown) {
       if (retry) {
         const msg = e instanceof Error ? e.message : String(e);
-        this.log(`Step failed: ${msg}. Waiting 2s and retrying...`);
-        await this.browserService.page.waitForTimeout(2000);
+        this.log(`Step failed: ${msg}. Waiting 3s and retrying...`);
+        await this.browserService.page.waitForTimeout(3000);
         return this.executeStep(step, false);
       }
       const msg = e instanceof Error ? e.message : String(e);
@@ -595,6 +603,11 @@ export class HybridQuestRunner {
         }
 
         this.saveQuestLog(questId, 'success', reviewResult.extractedData);
+        // Emit result after AI review confirms success
+        this.eventCallback({
+          type: 'result',
+          text: 'Quest completed successfully.',
+        });
         this.eventCallback({ type: 'done' });
       } else {
         this.log(`AI Review Failed: ${reviewResult.reason}`);
@@ -703,6 +716,7 @@ export class HybridQuestRunner {
     let failedSelectors: string[] = [];
     let lastUrl = this.browserService.page.url();
     const contextData = this.contextService.getContext();
+    let consecutiveWaitCount = 0;
 
     const messages: any[] = [
       {
@@ -802,14 +816,9 @@ export class HybridQuestRunner {
       );
 
       if (toolUses.length === 0) {
-        this.log('AI finished quest.');
+        this.log('AI finished quest. Proceeding to verification...');
         await this.captureScreenshot();
-
-        const textBlock = responseContent.find((c: any) => c.type === 'text');
-        this.eventCallback({
-          type: 'result',
-          text: textBlock?.text || 'Quest Completed via AI',
-        });
+        // Don't emit 'result' here - wait for AI review to complete in run()
         break;
       }
 
@@ -899,7 +908,7 @@ export class HybridQuestRunner {
             );
             (toolInput as any)._detectedChange = changeType;
           } else if (toolName === 'scroll') {
-            const amount = toolInput.amount || 384; // Default: half viewport (768/2)
+            const amount = toolInput.amount || BROWSER_CONFIG.scrollAmount;
             const deltaY = toolInput.direction === 'up' ? -amount : amount;
             await page.mouse.wheel(0, deltaY);
           } else if (toolName === 'press_key') {
@@ -1004,6 +1013,24 @@ export class HybridQuestRunner {
           resultText,
           toolName,
         });
+
+        // Track consecutive wait tool usage for stuck detection
+        if (toolName === 'random_wait' || toolName === 'wait') {
+          consecutiveWaitCount++;
+        } else {
+          consecutiveWaitCount = 0;
+        }
+      }
+
+      // Failsafe: Terminate if AI uses wait tool consecutively (appears stuck)
+      if (consecutiveWaitCount >= MAX_CONSECUTIVE_WAITS) {
+        const stuckMessage = `Mission failed: AI used wait tool ${MAX_CONSECUTIVE_WAITS} times consecutively. The agent appears to be stuck and unable to make progress.`;
+        this.log(stuckMessage);
+        this.eventCallback({
+          type: 'error',
+          message: stuckMessage,
+        });
+        throw new Error(stuckMessage);
       }
 
       // BATCHED SCREENSHOT: Capture only ONE screenshot after all tools execute

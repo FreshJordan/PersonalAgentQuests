@@ -53,7 +53,7 @@ export class QuestLogManager {
         }
       } else if (
         s.type === 'type_text' &&
-        s.params.text &&
+        s.params?.text &&
         !s.params.text.includes('@')
       ) {
         selections.push(`Typed: ${s.params.text}`);
@@ -65,13 +65,14 @@ export class QuestLogManager {
       email: log.steps.find(
         (s) =>
           // Check for common email formats in the parameters or description
-          (s.params.text &&
+          // Safely check s.params?.text to avoid TypeError when params is undefined
+          (s.params?.text &&
             (s.params.text.includes('@hellofresh.ca') ||
               s.params.text.includes('@'))) ||
           (s.description &&
             (s.description.includes('@hellofresh.ca') ||
               s.description.includes('@')))
-      )?.params.text,
+      )?.params?.text,
     };
 
     // Append summary to the log object before saving

@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { QuestScript, QuestStep } from './types';
-import { QUESTS } from './definitions';
+import { QuestDefinitionManager } from './QuestDefinitionManager';
 
 const getProjectRoot = () => {
   const cwd = process.cwd();
@@ -49,8 +49,8 @@ export class ScriptManager {
   static saveScript(questId: string, script: QuestScript): void {
     const scriptPath = path.join(SCRIPTS_DIR, `${questId}.json`);
 
-    // Determine expiration
-    const questDef = QUESTS.find((q) => q.id === questId);
+    // Determine expiration from quest definition
+    const questDef = QuestDefinitionManager.getDefinition(questId);
     const expirationDays = questDef?.scriptExpirationDays || 14; // Default to 14 days
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + expirationDays);
