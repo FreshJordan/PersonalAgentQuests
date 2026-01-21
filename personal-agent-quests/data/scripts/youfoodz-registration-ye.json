@@ -1,6 +1,6 @@
 {
   "id": "youfoodz-registration-ye",
-  "name": "Youfoodz Registration (YE)",
+  "name": "youfoodz-registration-ye",
   "description": "1. Navigate to https://www-staging.youfoodz.com/plans\n2. Continue through the signup funnel, only selecting required information. If required to select something, choose randomly.\n3. When you get to the page asking for email/login details, enter a new email in accordance with new email rules, using 'password' as the password.\n4. Enter random delivery address information, ignore validation unless it prevents you from progressing to the next step.\n5. Enter credit card details in accordance with credit card details provided in the system prompt. Progress to next step, doing anything else required.\n6. Once the account is created and there is some format of a 'welcome' message, this task is complete.",
   "steps": [
     {
@@ -38,9 +38,9 @@
     {
       "type": "type_text",
       "params": {
-        "text": "2000"
+        "text": "0001"
       },
-      "description": "Type: \"2000\"",
+      "description": "Type: \"0001\"",
       "timestamp": "2026-01-15T19:16:33.772Z",
       "status": "success"
     },
@@ -113,11 +113,104 @@
       "status": "success"
     },
     {
+      "type": "scroll",
+      "params": {
+        "direction": "down"
+      },
+      "description": "AI Action: scroll",
+      "timestamp": "2026-01-16T15:50:15.070Z",
+      "status": "success"
+    },
+    {
+      "type": "scroll",
+      "params": {
+        "direction": "up",
+        "amount": 800
+      },
+      "description": "AI Action: scroll",
+      "timestamp": "2026-01-16T15:50:20.871Z",
+      "status": "success"
+    },
+    {
       "type": "click_at_coordinates",
       "params": {
-        "x": 495,
-        "y": 371,
-        "description": "Click at (495, 371)",
+        "x": 512,
+        "y": 143,
+        "description": "Postcode input field",
+        "_targetElement": {
+          "tag": "input",
+          "text": "Enter postcode",
+          "identifier": "input#Enterpostcode[name=\"zipcode\"][role=\"textbox\"]"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (512, 143) - Postcode input field",
+      "timestamp": "2026-01-16T15:50:27.444Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "input",
+        "text": "Enter postcode",
+        "identifier": "input#Enterpostcode[name=\"zipcode\"][role=\"textbox\"]"
+      }
+    },
+    {
+      "type": "press_key",
+      "params": {
+        "key": "Meta+a"
+      },
+      "description": "AI Action: press_key",
+      "timestamp": "2026-01-16T15:50:32.787Z",
+      "status": "success"
+    },
+    {
+      "type": "type_text",
+      "params": {
+        "text": "2000"
+      },
+      "description": "AI Action: type \"2000\"",
+      "timestamp": "2026-01-16T15:50:38.348Z",
+      "status": "success"
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 511,
+        "y": 243,
+        "description": "Continue button",
+        "_targetElement": {
+          "tag": "span",
+          "text": "Continue",
+          "identifier": "span"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (511, 243) - Continue button",
+      "timestamp": "2026-01-16T15:50:44.280Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "span",
+        "text": "Continue",
+        "identifier": "span"
+      }
+    },
+    {
+      "type": "scroll",
+      "params": {
+        "direction": "up",
+        "amount": 300
+      },
+      "description": "AI Action: scroll",
+      "timestamp": "2026-01-16T15:50:50.183Z",
+      "status": "success"
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 511,
+        "y": 511,
+        "description": "SELECT THIS PLAN button",
         "_targetElement": {
           "tag": "span",
           "text": "SELECT THIS PLAN",
@@ -125,8 +218,8 @@
         },
         "_detectedChange": "dom"
       },
-      "description": "Click at (495, 371)",
-      "timestamp": "2026-01-15T19:16:55.856Z",
+      "description": "AI Action: click at (511, 511) - SELECT THIS PLAN button",
+      "timestamp": "2026-01-16T15:50:57.825Z",
       "status": "success",
       "expectedChange": "dom",
       "expectedElement": {
@@ -136,20 +229,11 @@
       }
     },
     {
-      "type": "wait",
-      "params": {
-        "duration": 2000
-      },
-      "description": "wait: {\"duration\":2000}",
-      "timestamp": "2026-01-15T19:16:59.826Z",
-      "status": "success"
-    },
-    {
       "type": "click_at_coordinates",
       "params": {
-        "x": 710,
-        "y": 279,
-        "description": "Click at (710, 279)",
+        "x": 711,
+        "y": 275,
+        "description": "Email input field",
         "_targetElement": {
           "tag": "input",
           "text": "Email",
@@ -157,8 +241,8 @@
         },
         "_detectedChange": "dom"
       },
-      "description": "Click at (710, 279)",
-      "timestamp": "2026-01-15T19:17:02.280Z",
+      "description": "AI Action: click at (711, 275) - Email input field",
+      "timestamp": "2026-01-16T15:51:04.611Z",
       "status": "success",
       "expectedChange": "dom",
       "expectedElement": {
@@ -172,16 +256,16 @@
       "params": {
         "text": "{{dynamicEmail}}"
       },
-      "description": "Type: {{dynamicEmail}} (dynamic)",
-      "timestamp": "2026-01-15T19:17:04.435Z",
+      "description": "AI Action: type \"jordan.mcinnis+jan16829250@hellofresh.ca\"",
+      "timestamp": "2026-01-16T15:51:09.946Z",
       "status": "success"
     },
     {
       "type": "click_at_coordinates",
       "params": {
-        "x": 719,
-        "y": 407,
-        "description": "Click at (719, 407)",
+        "x": 711,
+        "y": 403,
+        "description": "Continue button",
         "_targetElement": {
           "tag": "span",
           "text": "Continue",
@@ -189,8 +273,8 @@
         },
         "_detectedChange": "dom"
       },
-      "description": "Click at (719, 407)",
-      "timestamp": "2026-01-15T19:17:06.301Z",
+      "description": "AI Action: click at (711, 403) - Continue button",
+      "timestamp": "2026-01-16T15:51:16.184Z",
       "status": "success",
       "expectedChange": "dom",
       "expectedElement": {
@@ -200,31 +284,22 @@
       }
     },
     {
-      "type": "wait",
-      "params": {
-        "duration": 2000
-      },
-      "description": "wait: {\"duration\":2000}",
-      "timestamp": "2026-01-15T19:17:10.243Z",
-      "status": "success"
-    },
-    {
       "type": "click_at_coordinates",
       "params": {
-        "x": 680,
+        "x": 711,
         "y": 449,
-        "description": "Click at (680, 449)",
+        "description": "Password input field",
         "_targetElement": {
           "tag": "input",
           "text": "Choose a password",
           "identifier": "input#feature.registration-steps-form-group-password-input[name=\"password\"][role=\"textbox\"]"
         },
-        "_detectedChange": "dom"
+        "_detectedChange": "none"
       },
-      "description": "Click at (680, 449)",
-      "timestamp": "2026-01-15T19:17:12.726Z",
+      "description": "AI Action: click at (711, 449) - Password input field",
+      "timestamp": "2026-01-16T15:51:26.361Z",
       "status": "success",
-      "expectedChange": "dom",
+      "expectedChange": "none",
       "expectedElement": {
         "tag": "input",
         "text": "Choose a password",
@@ -236,16 +311,16 @@
       "params": {
         "text": "password"
       },
-      "description": "Type: \"password\"",
-      "timestamp": "2026-01-15T19:17:17.791Z",
+      "description": "AI Action: type \"password\"",
+      "timestamp": "2026-01-16T15:51:31.568Z",
       "status": "success"
     },
     {
       "type": "click_at_coordinates",
       "params": {
-        "x": 718,
-        "y": 581,
-        "description": "Click at (718, 581)",
+        "x": 711,
+        "y": 583,
+        "description": "Continue button",
         "_targetElement": {
           "tag": "span",
           "text": "Continue",
@@ -253,8 +328,8 @@
         },
         "_detectedChange": "dom"
       },
-      "description": "Click at (718, 581)",
-      "timestamp": "2026-01-15T19:17:21.588Z",
+      "description": "AI Action: click at (711, 583) - Continue button",
+      "timestamp": "2026-01-16T15:51:37.632Z",
       "status": "success",
       "expectedChange": "dom",
       "expectedElement": {
@@ -264,20 +339,31 @@
       }
     },
     {
-      "type": "wait",
+      "type": "random_wait",
       "params": {
-        "duration": 2000
+        "min": 1500,
+        "max": 2500
       },
-      "description": "wait: {\"duration\":2000}",
-      "timestamp": "2026-01-15T19:17:26.598Z",
+      "description": "AI Action: random_wait",
+      "timestamp": "2026-01-16T15:51:46.562Z",
+      "status": "success"
+    },
+    {
+      "type": "scroll",
+      "params": {
+        "direction": "up",
+        "amount": 800
+      },
+      "description": "AI Action: scroll",
+      "timestamp": "2026-01-16T15:51:50.697Z",
       "status": "success"
     },
     {
       "type": "click_at_coordinates",
       "params": {
-        "x": 274,
-        "y": 225,
-        "description": "Click at (274, 225)",
+        "x": 302,
+        "y": 216,
+        "description": "First name input field",
         "_targetElement": {
           "tag": "input",
           "text": "First name ",
@@ -285,8 +371,8 @@
         },
         "_detectedChange": "dom"
       },
-      "description": "Click at (274, 225)",
-      "timestamp": "2026-01-15T19:17:29.666Z",
+      "description": "AI Action: click at (302, 216) - First name input field",
+      "timestamp": "2026-01-16T15:51:59.301Z",
       "status": "success",
       "expectedChange": "dom",
       "expectedElement": {
@@ -300,8 +386,8 @@
       "params": {
         "text": "Jordan"
       },
-      "description": "Type: \"Jordan\"",
-      "timestamp": "2026-01-15T19:17:33.379Z",
+      "description": "AI Action: type \"Jordan\"",
+      "timestamp": "2026-01-16T15:52:04.586Z",
       "status": "success"
     },
     {
@@ -309,25 +395,34 @@
       "params": {
         "key": "Tab"
       },
-      "description": "press_key: {\"key\":\"Tab\"}",
-      "timestamp": "2026-01-15T19:17:35.944Z",
+      "description": "AI Action: press_key",
+      "timestamp": "2026-01-16T15:52:09.700Z",
       "status": "success"
     },
     {
       "type": "type_text",
       "params": {
-        "text": "Test"
+        "text": "McInnis"
       },
-      "description": "Type: \"Test\"",
-      "timestamp": "2026-01-15T19:17:38.287Z",
+      "description": "AI Action: type \"McInnis\"",
+      "timestamp": "2026-01-16T15:52:14.681Z",
+      "status": "success"
+    },
+    {
+      "type": "press_key",
+      "params": {
+        "key": "Tab"
+      },
+      "description": "AI Action: press_key",
+      "timestamp": "2026-01-16T15:52:20.829Z",
       "status": "success"
     },
     {
       "type": "click_at_coordinates",
       "params": {
-        "x": 580,
-        "y": 282,
-        "description": "Click at (580, 282)",
+        "x": 721,
+        "y": 276,
+        "description": "Street input field",
         "_targetElement": {
           "tag": "input",
           "text": "Street ",
@@ -335,8 +430,8 @@
         },
         "_detectedChange": "dom"
       },
-      "description": "Click at (580, 282)",
-      "timestamp": "2026-01-15T19:17:41.562Z",
+      "description": "AI Action: click at (721, 276) - Street input field",
+      "timestamp": "2026-01-16T15:52:26.961Z",
       "status": "success",
       "expectedChange": "dom",
       "expectedElement": {
@@ -348,79 +443,79 @@
     {
       "type": "type_text",
       "params": {
-        "text": "123"
+        "text": "123 Main Street"
       },
-      "description": "Type: \"123\"",
-      "timestamp": "2026-01-15T19:17:43.471Z",
+      "description": "AI Action: type \"123 Main Street\"",
+      "timestamp": "2026-01-16T15:52:32.099Z",
       "status": "success"
     },
     {
       "type": "click_at_coordinates",
       "params": {
-        "x": 593,
-        "y": 320,
-        "description": "Click at (593, 320)",
+        "x": 720,
+        "y": 347,
+        "description": "123 Main St Gosford NSW 2250 address suggestion",
         "_targetElement": {
-          "tag": "div",
-          "text": "123 Donnison StGosford NSW 2250 - 4 Addresses",
-          "identifier": "div"
+          "tag": "span",
+          "text": "Gosford NSW 2250 - 12 Addresses",
+          "identifier": "span"
         },
         "_detectedChange": "dom"
       },
-      "description": "Click at (593, 320)",
-      "timestamp": "2026-01-15T19:17:46.238Z",
+      "description": "AI Action: click at (720, 347) - 123 Main St Gosford NSW 2250 address suggestion",
+      "timestamp": "2026-01-16T15:52:39.207Z",
       "status": "success",
       "expectedChange": "dom",
       "expectedElement": {
-        "tag": "div",
-        "text": "123 Donnison StGosford NSW 2250 - 4 Addresses",
-        "identifier": "div"
+        "tag": "span",
+        "text": "Gosford NSW 2250 - 12 Addresses",
+        "identifier": "span"
       }
     },
     {
       "type": "click_at_coordinates",
       "params": {
-        "x": 634,
-        "y": 322,
-        "description": "Click at (634, 322)",
+        "x": 720,
+        "y": 316,
+        "description": "SE 1 123 Mann St address option",
         "_targetElement": {
-          "tag": "div",
-          "text": "U 1 123 Donnison StGosford NSW 2250",
-          "identifier": "div"
+          "tag": "span",
+          "text": "Gosford NSW 2250",
+          "identifier": "span"
         },
         "_detectedChange": "dom"
       },
-      "description": "Click at (634, 322)",
-      "timestamp": "2026-01-15T19:17:48.746Z",
+      "description": "AI Action: click at (720, 316) - SE 1 123 Mann St address option",
+      "timestamp": "2026-01-16T15:52:45.571Z",
       "status": "success",
       "expectedChange": "dom",
       "expectedElement": {
-        "tag": "div",
-        "text": "U 1 123 Donnison StGosford NSW 2250",
-        "identifier": "div"
+        "tag": "span",
+        "text": "Gosford NSW 2250",
+        "identifier": "span"
       }
     },
     {
       "type": "click_at_coordinates",
       "params": {
-        "x": 673,
-        "y": 337,
-        "description": "Click at (673, 337)",
+        "x": 721,
+        "y": 276,
+        "description": "Street field to change address",
         "_targetElement": {
           "tag": "input",
-          "text": "Postcode ",
-          "identifier": "input#postcode[name=\"postcode\"][role=\"textbox\"]"
+          "text": "Street ",
+          "identifier": "input#address1[name=\"address1\"][role=\"textbox\"]"
         },
         "_detectedChange": "dom"
       },
-      "description": "Click at (673, 337)",
-      "timestamp": "2026-01-15T19:17:51.256Z",
+      "description": "AI Action: click at (721, 276) - Street field to change address",
+      "timestamp": "2026-01-16T15:52:55.216Z",
       "status": "success",
       "expectedChange": "dom",
       "expectedElement": {
         "tag": "input",
-        "text": "Postcode ",
-        "identifier": "input#postcode[name=\"postcode\"][role=\"textbox\"]"
+        "text": "Street ",
+        "identifier": "input#address1[name=\"address1\"][role=\"textbox\"]"
       }
     },
     {
@@ -428,25 +523,71 @@
       "params": {
         "key": "Meta+a"
       },
-      "description": "press_key: {\"key\":\"Meta+a\"}",
-      "timestamp": "2026-01-15T19:17:56.793Z",
+      "description": "AI Action: press_key",
+      "timestamp": "2026-01-16T15:53:00.428Z",
       "status": "success"
     },
     {
       "type": "type_text",
       "params": {
-        "text": "2000"
+        "text": "100 George Street"
       },
-      "description": "Type: \"2000\"",
-      "timestamp": "2026-01-15T19:18:01.254Z",
+      "description": "AI Action: type \"100 George Street\"",
+      "timestamp": "2026-01-16T15:53:06.386Z",
       "status": "success"
     },
     {
       "type": "click_at_coordinates",
       "params": {
-        "x": 256,
-        "y": 393,
-        "description": "Click at (256, 393)",
+        "x": 720,
+        "y": 316,
+        "description": "100 George St Parramatta NSW 2150 address",
+        "_targetElement": {
+          "tag": "span",
+          "text": "Parramatta NSW 2150 - 35 Addresses",
+          "identifier": "span"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (720, 316) - 100 George St Parramatta NSW 2150 address",
+      "timestamp": "2026-01-16T15:53:14.647Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "span",
+        "text": "Parramatta NSW 2150 - 35 Addresses",
+        "identifier": "span"
+      }
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 720,
+        "y": 316,
+        "description": "SE 1 L 2 100 George St Parramatta NSW 2150",
+        "_targetElement": {
+          "tag": "span",
+          "text": "Parramatta NSW 2150",
+          "identifier": "span"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (720, 316) - SE 1 L 2 100 George St Parramatta NSW 2150",
+      "timestamp": "2026-01-16T15:53:22.850Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "span",
+        "text": "Parramatta NSW 2150",
+        "identifier": "span"
+      }
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 512,
+        "y": 396,
+        "description": "Phone number field",
         "_targetElement": {
           "tag": "input",
           "text": "Phone number ",
@@ -454,8 +595,8 @@
         },
         "_detectedChange": "dom"
       },
-      "description": "Click at (256, 393)",
-      "timestamp": "2026-01-15T19:19:20.088Z",
+      "description": "AI Action: click at (512, 396) - Phone number field",
+      "timestamp": "2026-01-16T15:53:30.811Z",
       "status": "success",
       "expectedChange": "dom",
       "expectedElement": {
@@ -467,10 +608,10 @@
     {
       "type": "type_text",
       "params": {
-        "text": "0411111111"
+        "text": "0412345678"
       },
-      "description": "Type: \"0411111111\"",
-      "timestamp": "2026-01-15T19:19:27.773Z",
+      "description": "AI Action: type \"0412345678\"",
+      "timestamp": "2026-01-16T15:53:36.139Z",
       "status": "success"
     },
     {
@@ -478,16 +619,16 @@
       "params": {
         "direction": "down"
       },
-      "description": "scroll: {\"direction\":\"down\"}",
-      "timestamp": "2026-01-15T19:19:31.306Z",
+      "description": "AI Action: scroll",
+      "timestamp": "2026-01-16T15:53:43.242Z",
       "status": "success"
     },
     {
       "type": "click_at_coordinates",
       "params": {
-        "x": 509,
-        "y": 581,
-        "description": "Click at (509, 581)",
+        "x": 512,
+        "y": 579,
+        "description": "Next button",
         "_targetElement": {
           "tag": "span",
           "text": "Next",
@@ -495,8 +636,8 @@
         },
         "_detectedChange": "url"
       },
-      "description": "Click at (509, 581)",
-      "timestamp": "2026-01-15T19:19:35.169Z",
+      "description": "AI Action: click at (512, 579) - Next button",
+      "timestamp": "2026-01-16T15:53:49.445Z",
       "status": "success",
       "expectedChange": "url",
       "expectedElement": {
@@ -506,20 +647,31 @@
       }
     },
     {
-      "type": "wait",
+      "type": "random_wait",
       "params": {
-        "duration": 2000
+        "min": 2000,
+        "max": 3000
       },
-      "description": "wait: {\"duration\":2000}",
-      "timestamp": "2026-01-15T19:19:39.174Z",
+      "description": "AI Action: random_wait",
+      "timestamp": "2026-01-16T15:54:00.253Z",
+      "status": "success"
+    },
+    {
+      "type": "scroll",
+      "params": {
+        "direction": "down",
+        "amount": 100
+      },
+      "description": "AI Action: scroll",
+      "timestamp": "2026-01-16T15:54:04.645Z",
       "status": "success"
     },
     {
       "type": "click_at_coordinates",
       "params": {
-        "x": 263,
-        "y": 528,
-        "description": "Click at (263, 528)",
+        "x": 512,
+        "y": 427,
+        "description": "Card number field",
         "_targetElement": {
           "tag": "iframe",
           "text": "Iframe for card number",
@@ -527,8 +679,8 @@
         },
         "_detectedChange": "dom"
       },
-      "description": "Click at (263, 528)",
-      "timestamp": "2026-01-15T19:19:41.882Z",
+      "description": "AI Action: click at (512, 427) - Card number field",
+      "timestamp": "2026-01-16T15:54:12.996Z",
       "status": "success",
       "expectedChange": "dom",
       "expectedElement": {
@@ -542,27 +694,27 @@
       "params": {
         "text": "4111111111111111"
       },
-      "description": "Type: \"4111111111111111\"",
-      "timestamp": "2026-01-15T19:19:48.126Z",
+      "description": "AI Action: type \"4111111111111111\"",
+      "timestamp": "2026-01-16T15:54:18.910Z",
       "status": "success"
     },
     {
       "type": "click_at_coordinates",
       "params": {
-        "x": 272,
-        "y": 611,
-        "description": "Click at (272, 611)",
+        "x": 312,
+        "y": 505,
+        "description": "Expiry date field",
         "_targetElement": {
           "tag": "iframe",
           "text": "Iframe for expiry date",
           "identifier": "iframe"
         },
-        "_detectedChange": "dom"
+        "_detectedChange": "none"
       },
-      "description": "Click at (272, 611)",
-      "timestamp": "2026-01-15T19:19:50.861Z",
+      "description": "AI Action: click at (312, 505) - Expiry date field",
+      "timestamp": "2026-01-16T15:54:28.333Z",
       "status": "success",
-      "expectedChange": "dom",
+      "expectedChange": "none",
       "expectedElement": {
         "tag": "iframe",
         "text": "Iframe for expiry date",
@@ -574,40 +726,17 @@
       "params": {
         "text": "0330"
       },
-      "description": "Type: \"0330\"",
-      "timestamp": "2026-01-15T19:19:54.385Z",
+      "description": "AI Action: type \"0330\"",
+      "timestamp": "2026-01-16T15:54:33.261Z",
       "status": "success"
-    },
-    {
-      "type": "click_at_coordinates",
-      "params": {
-        "x": 616,
-        "y": 608,
-        "description": "Click at (616, 608)",
-        "_targetElement": {
-          "tag": "iframe",
-          "text": "Iframe for security code",
-          "identifier": "iframe"
-        },
-        "_detectedChange": "dom"
-      },
-      "description": "Click at (616, 608)",
-      "timestamp": "2026-01-15T19:19:56.340Z",
-      "status": "success",
-      "expectedChange": "dom",
-      "expectedElement": {
-        "tag": "iframe",
-        "text": "Iframe for security code",
-        "identifier": "iframe"
-      }
     },
     {
       "type": "type_text",
       "params": {
         "text": "737"
       },
-      "description": "Type: \"737\"",
-      "timestamp": "2026-01-15T19:20:00.360Z",
+      "description": "AI Action: type \"737\"",
+      "timestamp": "2026-01-16T15:54:38.862Z",
       "status": "success"
     },
     {
@@ -615,16 +744,16 @@
       "params": {
         "direction": "down"
       },
-      "description": "scroll: {\"direction\":\"down\"}",
-      "timestamp": "2026-01-15T19:20:02.771Z",
+      "description": "AI Action: scroll",
+      "timestamp": "2026-01-16T15:54:44.602Z",
       "status": "success"
     },
     {
       "type": "click_at_coordinates",
       "params": {
-        "x": 519,
-        "y": 731,
-        "description": "Click at (519, 731)",
+        "x": 512,
+        "y": 638,
+        "description": "Place order & select meals button",
         "_targetElement": {
           "tag": "span",
           "text": "Place order & select meals",
@@ -632,8 +761,8 @@
         },
         "_detectedChange": "dom"
       },
-      "description": "Click at (519, 731)",
-      "timestamp": "2026-01-15T19:20:05.843Z",
+      "description": "AI Action: click at (512, 638) - Place order & select meals button",
+      "timestamp": "2026-01-16T15:54:52.627Z",
       "status": "success",
       "expectedChange": "dom",
       "expectedElement": {
@@ -643,24 +772,67 @@
       }
     },
     {
-      "type": "wait",
+      "type": "random_wait",
       "params": {
-        "duration": 2000
+        "min": 3000,
+        "max": 5000
       },
-      "description": "wait: {\"duration\":2000}",
-      "timestamp": "2026-01-15T19:20:09.818Z",
+      "description": "AI Action: random_wait",
+      "timestamp": "2026-01-16T15:55:04.396Z",
       "status": "success"
+    },
+    {
+      "type": "random_wait",
+      "params": {
+        "min": 3000,
+        "max": 5000
+      },
+      "description": "AI Action: random_wait",
+      "timestamp": "2026-01-16T15:55:15.557Z",
+      "status": "success"
+    },
+    {
+      "type": "scroll",
+      "params": {
+        "direction": "up"
+      },
+      "description": "AI Action: scroll",
+      "timestamp": "2026-01-16T15:55:23.478Z",
+      "status": "success"
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 714,
+        "y": 181,
+        "description": "Close referral modal X button",
+        "_targetElement": {
+          "tag": "path",
+          "text": "path",
+          "identifier": "path"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (714, 181) - Close referral modal X button",
+      "timestamp": "2026-01-16T15:55:33.244Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "path",
+        "text": "path",
+        "identifier": "path"
+      }
     },
     {
       "type": "wait",
       "params": {
         "duration": 2000
       },
-      "description": "wait: {\"duration\":2000}",
-      "timestamp": "2026-01-15T19:20:14.135Z",
+      "description": "Final Wait",
+      "timestamp": "2026-01-16T15:55:44.546Z",
       "status": "success"
     }
   ],
-  "lastUpdated": "2026-01-15T19:20:16.104Z",
-  "expiresAt": "2026-01-29T19:20:16.107Z"
+  "lastUpdated": "2026-01-16T15:55:44.546Z",
+  "expiresAt": "2026-01-30T15:55:44.547Z"
 }

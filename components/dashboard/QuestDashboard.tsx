@@ -59,7 +59,6 @@ export const QuestDashboard: React.FC<QuestDashboardProps> = ({
     <div
       style={{
         padding: '40px',
-        maxWidth: '1200px',
         margin: '0 auto',
       }}
     >
@@ -197,7 +196,7 @@ export const QuestDashboard: React.FC<QuestDashboardProps> = ({
 
       <div id="active-missions">
         <h2 style={{ fontSize: '20px', marginBottom: '20px' }}>
-          Active Missions ({sessions.length})
+          Active Quests ({sessions.length})
         </h2>
         {sessions.length === 0 && (
           <div
@@ -209,7 +208,7 @@ export const QuestDashboard: React.FC<QuestDashboardProps> = ({
               color: '#666',
             }}
           >
-            No active missions. Start one above!
+            No active quests. Start one above!
           </div>
         )}
         {sessions.map((session) => (

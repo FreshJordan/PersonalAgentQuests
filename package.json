@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "goodMorning": "next dev -p 3001",
+    "startDashboard": "next dev -p 3001",
     "dev": "next dev -p 3001",
     "build": "next build",
     "start": "next start -p 3001",
