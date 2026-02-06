@@ -3,7 +3,6 @@ export interface QuestDefinition {
   name: string;
   description: string;
   instructions: string;
-  scriptExpirationDays?: number; // How many days scripts for this quest should last
   hideBrowser?: boolean; // Whether to hide the browser session in the UI
   inputConfig?: {
     label: string;
@@ -54,7 +53,6 @@ export interface QuestScript {
   description: string;
   steps: QuestStep[];
   lastUpdated: string;
-  expiresAt?: string; // Optional expiration date for the script
   successCriteria?: StepValidation[]; // Global validation to verify the quest actually finished
 }
 

@@ -623,58 +623,35 @@
       "status": "success"
     },
     {
-      "type": "click_at_coordinates",
-      "params": {
-        "x": 512,
-        "y": 711,
-        "description": "Nästa (Next) button",
-        "_targetElement": {
-          "tag": "span",
-          "text": "Nästa",
-          "identifier": "span"
-        },
-        "_detectedChange": "url"
-      },
-      "description": "AI Action: click at (512, 711) - Nästa (Next) button",
-      "timestamp": "2026-01-15T18:33:12.942Z",
-      "status": "success",
-      "expectedChange": "url",
-      "expectedElement": {
-        "tag": "span",
-        "text": "Nästa",
-        "identifier": "span"
-      }
-    },
-    {
       "type": "scroll",
       "params": {
         "direction": "down"
       },
       "description": "AI Action: scroll",
-      "timestamp": "2026-01-15T18:33:23.892Z",
+      "timestamp": "2026-02-04T16:28:42.925Z",
       "status": "success"
     },
     {
       "type": "click_at_coordinates",
       "params": {
-        "x": 512,
+        "x": 511,
         "y": 200,
         "description": "Card number field (Kortnummer)",
         "_targetElement": {
           "tag": "iframe",
-          "text": "Iframe för kortnummer",
-          "identifier": "iframe"
+          "text": "card number field",
+          "identifier": "iframe[name=\"vvezth\"]"
         },
         "_detectedChange": "dom"
       },
-      "description": "AI Action: click at (512, 200) - Card number field (Kortnummer)",
-      "timestamp": "2026-01-15T18:33:34.596Z",
+      "description": "AI Action: click at (511, 200) - Card number field (Kortnummer)",
+      "timestamp": "2026-02-04T16:28:50.017Z",
       "status": "success",
       "expectedChange": "dom",
       "expectedElement": {
         "tag": "iframe",
-        "text": "Iframe för kortnummer",
-        "identifier": "iframe"
+        "text": "card number field",
+        "identifier": "iframe[name=\"vvezth\"]"
       }
     },
     {
@@ -683,17 +660,31 @@
         "text": "4111111111111111"
       },
       "description": "AI Action: type \"4111111111111111\"",
-      "timestamp": "2026-01-15T18:33:41.763Z",
+      "timestamp": "2026-02-04T16:28:55.645Z",
       "status": "success"
     },
     {
-      "type": "press_key",
+      "type": "click_at_coordinates",
       "params": {
-        "key": "Tab"
+        "x": 313,
+        "y": 266,
+        "description": "Expiry date field (Utgångsdatum)",
+        "_targetElement": {
+          "tag": "iframe",
+          "text": "card expiry field",
+          "identifier": "iframe[name=\"s832wa\"]"
+        },
+        "_detectedChange": "dom"
       },
-      "description": "AI Action: press_key",
-      "timestamp": "2026-01-15T18:33:48.301Z",
-      "status": "success"
+      "description": "AI Action: click at (313, 266) - Expiry date field (Utgångsdatum)",
+      "timestamp": "2026-02-04T16:29:01.476Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "iframe",
+        "text": "card expiry field",
+        "identifier": "iframe[name=\"s832wa\"]"
+      }
     },
     {
       "type": "type_text",
@@ -701,30 +692,30 @@
         "text": "0330"
       },
       "description": "AI Action: type \"0330\"",
-      "timestamp": "2026-01-15T18:33:54.664Z",
+      "timestamp": "2026-02-04T16:29:06.974Z",
       "status": "success"
     },
     {
       "type": "click_at_coordinates",
       "params": {
-        "x": 711,
-        "y": 278,
-        "description": "Security code field (Säkerhetskod)",
+        "x": 710,
+        "y": 266,
+        "description": "CVV field (CVV för säkerhetskod)",
         "_targetElement": {
           "tag": "iframe",
-          "text": "Iframe för säkerhetskod",
-          "identifier": "iframe"
+          "text": "card cvc field",
+          "identifier": "iframe[name=\"1x0ajl\"]"
         },
-        "_detectedChange": "none"
+        "_detectedChange": "dom"
       },
-      "description": "AI Action: click at (711, 278) - Security code field (Säkerhetskod)",
-      "timestamp": "2026-01-15T18:34:05.038Z",
+      "description": "AI Action: click at (710, 266) - CVV field (CVV för säkerhetskod)",
+      "timestamp": "2026-02-04T16:29:11.879Z",
       "status": "success",
-      "expectedChange": "none",
+      "expectedChange": "dom",
       "expectedElement": {
         "tag": "iframe",
-        "text": "Iframe för säkerhetskod",
-        "identifier": "iframe"
+        "text": "card cvc field",
+        "identifier": "iframe[name=\"1x0ajl\"]"
       }
     },
     {
@@ -733,7 +724,7 @@
         "text": "737"
       },
       "description": "AI Action: type \"737\"",
-      "timestamp": "2026-01-15T18:34:10.722Z",
+      "timestamp": "2026-02-04T16:29:16.606Z",
       "status": "success"
     },
     {
@@ -742,15 +733,15 @@
         "direction": "down"
       },
       "description": "AI Action: scroll",
-      "timestamp": "2026-01-15T18:34:20.258Z",
+      "timestamp": "2026-02-04T16:29:22.654Z",
       "status": "success"
     },
     {
       "type": "click_at_coordinates",
       "params": {
-        "x": 511,
-        "y": 543,
-        "description": "Beställ & välj måltider button (Order & Choose Meals)",
+        "x": 512,
+        "y": 529,
+        "description": "Beställ & välj måltider (Order & choose meals) button",
         "_targetElement": {
           "tag": "span",
           "text": "Beställ & välj måltider",
@@ -758,8 +749,8 @@
         },
         "_detectedChange": "dom"
       },
-      "description": "AI Action: click at (511, 543) - Beställ & välj måltider button (Order & Choose Meals)",
-      "timestamp": "2026-01-15T18:34:31.019Z",
+      "description": "AI Action: click at (512, 529) - Beställ & välj måltider (Order & choose meals) button",
+      "timestamp": "2026-02-04T16:29:29.741Z",
       "status": "success",
       "expectedChange": "dom",
       "expectedElement": {
@@ -771,22 +762,45 @@
     {
       "type": "random_wait",
       "params": {
-        "min": 3000,
-        "max": 5000
+        "min": 2000,
+        "max": 4000
       },
       "description": "AI Action: random_wait",
-      "timestamp": "2026-01-15T18:34:46.186Z",
+      "timestamp": "2026-02-04T16:29:40.752Z",
       "status": "success"
     },
     {
       "type": "scroll",
       "params": {
-        "direction": "down",
-        "amount": 0
+        "direction": "up",
+        "amount": 100
       },
       "description": "AI Action: scroll",
-      "timestamp": "2026-01-15T18:34:50.820Z",
+      "timestamp": "2026-02-04T16:29:45.644Z",
       "status": "success"
+    },
+    {
+      "type": "click_at_coordinates",
+      "params": {
+        "x": 713,
+        "y": 187,
+        "description": "Close button for the referral modal",
+        "_targetElement": {
+          "tag": "path",
+          "text": "path",
+          "identifier": "path"
+        },
+        "_detectedChange": "dom"
+      },
+      "description": "AI Action: click at (713, 187) - Close button for the referral modal",
+      "timestamp": "2026-02-04T16:29:55.641Z",
+      "status": "success",
+      "expectedChange": "dom",
+      "expectedElement": {
+        "tag": "path",
+        "text": "path",
+        "identifier": "path"
+      }
     },
     {
       "type": "wait",
@@ -794,10 +808,9 @@
         "duration": 2000
       },
       "description": "Final Wait",
-      "timestamp": "2026-01-15T18:35:06.682Z",
+      "timestamp": "2026-02-04T16:30:06.587Z",
       "status": "success"
     }
   ],
-  "lastUpdated": "2026-01-15T18:35:06.682Z",
-  "expiresAt": "2026-01-29T18:35:06.683Z"
+  "lastUpdated": "2026-02-04T16:30:06.587Z"
 }

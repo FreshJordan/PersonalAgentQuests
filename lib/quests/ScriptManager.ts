@@ -25,18 +25,6 @@ export class ScriptManager {
       try {
         const data = fs.readFileSync(scriptPath, 'utf-8');
         const script: QuestScript = JSON.parse(data);
-
-        // Check for expiration
-        if (script.expiresAt) {
-          const now = new Date();
-          const expiresAt = new Date(script.expiresAt);
-          if (now > expiresAt) {
-            console.log(`Script for ${questId} has expired. Deleting...`);
-            fs.unlinkSync(scriptPath);
-            return null;
-          }
-        }
-
         return script;
       } catch (e) {
         console.error(`Failed to read script for ${questId}`, e);
@@ -48,19 +36,7 @@ export class ScriptManager {
 
   static saveScript(questId: string, script: QuestScript): void {
     const scriptPath = path.join(SCRIPTS_DIR, `${questId}.json`);
-
-    // Determine expiration from quest definition
-    const questDef = QuestDefinitionManager.getDefinition(questId);
-    const expirationDays = questDef?.scriptExpirationDays || 14; // Default to 14 days
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + expirationDays);
-
-    const scriptWithExpiration = {
-      ...script,
-      expiresAt: expiresAt.toISOString(),
-    };
-
-    fs.writeFileSync(scriptPath, JSON.stringify(scriptWithExpiration, null, 2));
+    fs.writeFileSync(scriptPath, JSON.stringify(script, null, 2));
   }
 
   static convertToolActionsToSteps(actions: any[]): QuestStep[] {
